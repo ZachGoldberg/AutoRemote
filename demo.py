@@ -21,8 +21,6 @@ class DIDLParser(object):
   def new_container(self, node, object):
     self.containers.append(object)
 
-    
-
 
 class PyGUPnPCP(object):
   def __init__(self):
@@ -40,7 +38,7 @@ class PyGUPnPCP(object):
     # Get a default maincontext
     self.main_ctx = GLib.main_context_default() 
 
-    self.gupnp_ctx = GUPnP.Context(interface="eth1")
+    self.gupnp_ctx = GUPnP.Context(interface="lo")
 
     # Bind to eth0 in the maincontext on any port
     self.cp  = GUPnP.ControlPoint().new(self.gupnp_ctx, "upnp:rootdevice")
@@ -52,7 +50,7 @@ class PyGUPnPCP(object):
     # "Tell the Control Point to Start Searching"
     GSSDP.ResourceBrowser.set_active(self.cp, True)
     
-#    GObject.timeout_add(3000, self.list_cur_devices)
+    #GObject.timeout_add(3000, self.list_cur_devices)
 
     self.ui = PyGUPnPCPUI(self)
     self.ui.main()
@@ -106,6 +104,30 @@ class PyGUPnPCP(object):
     return False
 
 
+  def play_object(self, source, renderer, item):
+    uri = "%s/content/media/object_id=%s&res_id=0" % (
+      source.get_presentation_url(),
+      item.get_id()
+      )
+    data = {"InstanceID": "0", "CurrentURI": uri, "CurrentURIMetaData": uri} 
+    
+    services = self.device_services[renderer.get_udn()]
+    av_serv = None
+    for s in services:
+      if "AVTransport" in s.get_service_type():
+        av_serv = s
+        break
+    inst = {"InstanceID": 0}
+    av_serv.send_action_hash("Stop", data, {})
+    av_serv.send_action_hash("SetAVTransportURI", data, {})
+    av_serv.send_action_hash("Play", data, {})
+    #	  print "Done setting URI"
+#          data2 = {"Speed": "1", "InstanceID": "0"}
+#          service.send_action_hash("Stop", {"InstanceID": 0}, {})
+#          print "Done Stopping"
+#          service.send_action_hash("Play", data2, {})
+
+
   def children_loaded(self, service, action, data):
     """
     Ends the action and loads the data
@@ -118,11 +140,13 @@ class PyGUPnPCP(object):
       print "Browse Node Action Failed"
 
     parser = DIDLParser(return_data["Result"])
-    print parser.containers, parser.objects
 
     self.ui.clear_source_browser()
     for c in parser.containers:
       self.ui.add_container(c)
+
+    for o in parser.objects:
+      self.ui.add_object(o)
 
   def load_children(self, device, object_id=0):
     """
@@ -142,10 +166,19 @@ class PyGUPnPCP(object):
     if not return_data:
       print "Error initiating the Browse action"
   
+  def server_introspection(self, service, introspection, error, userdata):
+    print "Got server introspection"
+    self.introspections[service.get_udn()] = introspection
+    for i in introspection.list_actions():
+      print i.name
+
   def device_available(self, cp, device):
     self.devices.append(device)
     print device.get_model_name()
     self.device_services[device.get_udn()] = device.list_services()
+    
+    for s in self.device_services[device.get_udn()]:
+      s.get_introspection_async(self.server_introspection, None)
 
     if self.is_source(device):
       self.sources.append(device)
