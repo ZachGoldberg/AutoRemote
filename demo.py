@@ -1,5 +1,5 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
-import os
+import os, urllib2, tempfile
 import pdb
 import pygtk, gtk
 
@@ -43,11 +43,10 @@ class PyGUPnPCP(object):
     self.ctx_mgr = GUPnP.ContextManager.new(self.main_ctx, 0)
     self.ctx_mgr.connect("context_available", self.new_ctx)
 
-    GObject.timeout_add(3000, self.list_cur_devices)
+#    GObject.timeout_add(3000, self.list_cur_devices)
 
     self.ui = PyGUPnPCPUI(self)
     self.ui.main()
-
 
   def new_ctx(self, ctx_mgr, ctx):
 
@@ -77,11 +76,11 @@ class PyGUPnPCP(object):
           
     print "Current Sources:"
     for i in self.sources:
-      print "\t%s" % i.get_model_name()
+      print "\t%s (%s)" % (i.get_model_name(), i.get_udn())
 
     print "Current Renderers:"
     for i in self.renderers:
-      print "\t%s" % i.get_model_name()
+      print "\t%s (%s)" % (i.get_model_name(), i.get_udn())
 
     print "-" * 30
 
@@ -108,7 +107,7 @@ class PyGUPnPCP(object):
       return False
   
     for s in self.device_services[device]:
-      if "AV" in s.get_service_type():
+      if "AVTransport" in s.get_service_type():
         return s
   
     return False
@@ -131,12 +130,6 @@ class PyGUPnPCP(object):
     av_serv.send_action_hash("Stop", data, {})
     av_serv.send_action_hash("SetAVTransportURI", data, {})
     av_serv.send_action_hash("Play", data, {})
-    #	  print "Done setting URI"
-#          data2 = {"Speed": "1", "InstanceID": "0"}
-#          service.send_action_hash("Stop", {"InstanceID": 0}, {})
-#          print "Done Stopping"
-#          service.send_action_hash("Play", data2, {})
-
 
   def children_loaded(self, service, action, data):
     """
@@ -177,10 +170,7 @@ class PyGUPnPCP(object):
       print "Error initiating the Browse action"
   
   def server_introspection(self, service, introspection, error, userdata):
-    print "Got server introspection"
     self.introspections[service.get_udn()] = introspection
-    for i in introspection.list_actions():
-      print i.name
 
   def device_available(self, cp, device):
     for d in self.devices:
@@ -189,6 +179,15 @@ class PyGUPnPCP(object):
 
     self.devices.append(device)
     print device.get_model_name()
+    (icon_url, _, _, _, _) = device.get_icon_url(None, -1, -1, -1, False)
+    icon_file = None
+    if icon_url:
+      print icon_url
+      data = urllib2.urlopen(icon_url)
+      f, icon_file = tempfile.mkstemp()
+      os.write(f, ''.join(data.readlines()))
+
+
     self.device_services[device.get_udn()] = device.list_services()
     
     for s in self.device_services[device.get_udn()]:
@@ -196,7 +195,7 @@ class PyGUPnPCP(object):
 
     if self.is_source(device):
       self.sources.append(device)
-      self.ui.add_source(device)
+      self.ui.add_source(device, icon_file)
       
     if self.is_renderer(device):
       self.renderers.append(device)

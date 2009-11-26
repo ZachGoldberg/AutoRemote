@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from gi.repository import GUPnPAV
+from gi.repository import GUPnP, GUPnPAV
 import pygtk
 pygtk.require('2.0')
 import gtk, gobject
@@ -73,18 +73,42 @@ class PyGUPnPCPUI(object):
         if len(self.renderers) == 1:
             self.renderer_list.set_active(1)
 
-    def add_source(self, device):
-        self.source_list.append_text(device.get_model_name())
+    def add_source(self, device, icon_file):
+        self.icons[device.get_udn()] = icon_file
+        self.source_list.get_model().append([device.get_model_name(), gtk.STOCK_OPEN, device])
         self.sources.append(device)
         if len(self.sources) == 1:
             self.source_list.set_active(1)
             
-            
+    def make_pb(self, col, cell, model, iter):
+        stock = model.get_value(iter, 1)
+	if not stock:
+	    return
+
+        device = model.get_value(iter, 2)
+
+        if device and self.icons[device.get_udn()]:
+            pb = gtk.gdk.pixbuf_new_from_file(self.icons[device.get_udn()])
+        else:
+            pb = self.source_list.render_icon(stock, gtk.ICON_SIZE_MENU, None)
+
+        cell.set_property('pixbuf', pb)
+        return
+
     def init_top_bar(self):
         self.top_bar = gtk.HBox()
 	
-        self.source_list = gtk.combo_box_new_text()
-	self.source_list.insert_text(0, "Media Sources")
+        liststore = gtk.ListStore(str, str, object)
+        self.source_list = gtk.ComboBox(liststore)
+        cellpb = gtk.CellRendererPixbuf()
+	cell = gtk.CellRendererText()
+        self.source_list.pack_start(cellpb, False)
+        self.source_list.pack_start(cell, True)
+
+        self.source_list.set_cell_data_func(cellpb, self.make_pb)
+	self.source_list.add_attribute(cell, 'text', 0)
+
+	self.source_list.get_model().append(["Media Sources", gtk.STOCK_OPEN, None])
         self.source_list.set_active(0)
         self.source_list.connect("changed", self.source_changed)
 
@@ -130,6 +154,7 @@ class PyGUPnPCPUI(object):
         self.upnp = upnp_backend
 
         self.sources = []
+        self.icons = {}
         self.renderers = []
         self.items = []
         self.source_device = None
