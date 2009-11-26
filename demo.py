@@ -31,33 +31,43 @@ class PyGUPnPCP(object):
     self.sources = []
     self.renderers = []
     self.ui = None
-  
+    self.cps = []
+    self.contexts = []  
+
   def main(self):
     GObject.threads_init()
 
     # Get a default maincontext
     self.main_ctx = GLib.main_context_default() 
 
-    self.gupnp_ctx = GUPnP.Context(interface="lo")
+    self.ctx_mgr = GUPnP.ContextManager.new(self.main_ctx, 0)
+    self.ctx_mgr.connect("context_available", self.new_ctx)
 
-    # Bind to eth0 in the maincontext on any port
-    self.cp  = GUPnP.ControlPoint().new(self.gupnp_ctx, "upnp:rootdevice")
-
-    # Use glib style .connect() as a callback on the controlpoint to listen for new devices
-    self.cp.connect("device-proxy-available", self.device_available)
-    self.cp.connect("device-proxy-unavailable", self.device_unavailable)
-
-    # "Tell the Control Point to Start Searching"
-    GSSDP.ResourceBrowser.set_active(self.cp, True)
-    
-    #GObject.timeout_add(3000, self.list_cur_devices)
+    GObject.timeout_add(3000, self.list_cur_devices)
 
     self.ui = PyGUPnPCPUI(self)
     self.ui.main()
 
+
+  def new_ctx(self, ctx_mgr, ctx):
+
+    self.contexts.append(ctx)
+
+    # Bind to the context in the maincontext on any port
+    cp  = GUPnP.ControlPoint().new(ctx, "upnp:rootdevice")
+
+    # Use glib style .connect() as a callback on the controlpoint to listen for new devices
+    cp.connect("device-proxy-available", self.device_available)
+    cp.connect("device-proxy-unavailable", self.device_unavailable)
+
+    # "Tell the Control Point to Start Searching"
+    GSSDP.ResourceBrowser.set_active(cp, True)
+    
+    self.cps.append(cp)
+
   def list_cur_devices(self):
     for d in self.devices:
-      print "Device: %s" % d.get_model_name()
+      print "Device: %s (%s)" % (d.get_model_name(), d.get_udn())
       for s in self.device_services[d.get_udn()]:
         print "\tService: %s" % s.get_service_type()
         if not s.get_udn() in self.introspections:
@@ -173,6 +183,10 @@ class PyGUPnPCP(object):
       print i.name
 
   def device_available(self, cp, device):
+    for d in self.devices:
+	if d.get_udn() == device.get_udn():
+	  return
+
     self.devices.append(device)
     print device.get_model_name()
     self.device_services[device.get_udn()] = device.list_services()
