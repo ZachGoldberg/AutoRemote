@@ -1,5 +1,5 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
-import os, urllib2, tempfile
+import os, urllib2, tempfile, atexit
 import pdb
 import pygtk, gtk
 
@@ -33,6 +33,14 @@ class PyGUPnPCP(object):
     self.ui = None
     self.cps = []
     self.contexts = []  
+    self.created_files = []
+
+    atexit.register(self.cleanup_files)
+
+  def cleanup_files(self):
+    for i in self.created_files:
+      os.unlink(i)
+    
 
   def main(self):
     GObject.threads_init()
@@ -114,10 +122,11 @@ class PyGUPnPCP(object):
 
 
   def play_object(self, source, renderer, item):
-    uri = "%s/content/media/object_id=%s&res_id=0" % (
-      source.get_presentation_url(),
-      item.get_id()
-      )
+    resources = item.get_resources()
+    if len(resources) < 1:
+	print "Could not get a resource for item to play!"
+	return
+    uri = resources[0].get_uri()
     data = {"InstanceID": "0", "CurrentURI": uri, "CurrentURIMetaData": uri} 
     
     services = self.device_services[renderer.get_udn()]
@@ -173,20 +182,23 @@ class PyGUPnPCP(object):
     self.introspections[service.get_udn()] = introspection
 
   def device_available(self, cp, device):
+    print "%s is now available" % device.get_model_name()
     for d in self.devices:
 	if d.get_udn() == device.get_udn():
-	  return
+          # We can only assume that the old one dropped off the network
+          # and didn't tell us about it.  So manually remove it then proceed
+          # to readd.
+          print "Duplicate device online?  Removing old entry"
+	  self.device_unavailable(cp, d)
 
     self.devices.append(device)
-    print device.get_model_name()
-    (icon_url, _, _, _, _) = device.get_icon_url(None, -1, -1, -1, False)
+    (icon_url, _, _, _, _) = device.get_icon_url(None, 32, 22, 22, False)
     icon_file = None
     if icon_url:
-      print icon_url
       data = urllib2.urlopen(icon_url)
       f, icon_file = tempfile.mkstemp()
       os.write(f, ''.join(data.readlines()))
-
+      os.close(f)
 
     self.device_services[device.get_udn()] = device.list_services()
     
@@ -196,19 +208,30 @@ class PyGUPnPCP(object):
     if self.is_source(device):
       self.sources.append(device)
       self.ui.add_source(device, icon_file)
-      
+
     if self.is_renderer(device):
       self.renderers.append(device)
-      self.ui.add_renderer(device)
+      self.ui.add_renderer(device, icon_file)
+
+    if icon_file:
+      self.created_files.append(icon_file)
 
   def device_unavailable(self, cp, device):
-    self.devices.remove(device)
-    if self.sources and device.get_model_name() in self.sources:
-      self.sources.remove(device)
+    print "%s has disappeared!" % device.get_model_name()
+    for d in self.devices:
+      if d.get_udn() == device.get_udn():
+        self.devices.remove(d)
 
-    if self.renderers and device.get_model_name() in self.renderers:
-      self.renerers.remove(device)
 
+    for d in self.sources:
+      if d.get_udn() == device.get_udn():
+        self.sources.remove(d)
+        self.ui.remove_source(d)
+        
+    for d in self.renderers:
+      if d.get_udn() == device.get_udn():
+        self.renderers.remove(d)
+        self.ui.remove_renderer(d)
 
 if __name__ == "__main__":
   prog = PyGUPnPCP()

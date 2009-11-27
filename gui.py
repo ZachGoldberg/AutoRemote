@@ -17,9 +17,9 @@ class PyGUPnPCPUI(object):
         gtk.main_quit()
 
     def source_changed(self, box):
-        print "Source Changed"
         active = self.source_list.get_active()
         if active == 0: # The title entry
+            self.clear_source_browser()
             return
         active -= 1
 
@@ -28,7 +28,6 @@ class PyGUPnPCPUI(object):
         self.upnp.load_children(self.source_device)
 
     def renderer_changed(self, box):
-        print "Renderer Changed"
         active = self.renderer_list.get_active()
         if active == 0: # The title entry
             return
@@ -37,12 +36,14 @@ class PyGUPnPCPUI(object):
         self.renderer_device = self.renderers[active]
 
     def play_or_dive(self, tree, col_loc, col):
-        print "Row activated"
         item = self.items[col_loc[0]]
         if isinstance(item, GUPnPAV.GUPnPDIDLLiteContainer):
             self.stack.append(item.get_parent_id())
             self.upnp.load_children(self.source_device, item.get_id())
         elif isinstance(item, GUPnPAV.GUPnPDIDLLiteItem):
+	    if not self.source_device or not self.renderer_device:
+		print "Missing either source or destination device"
+		return
             print "Begin playing %s" % item.get_title()
             self.upnp.play_object(self.source_device,
                                   self.renderer_device,
@@ -67,8 +68,9 @@ class PyGUPnPCPUI(object):
     def add_object(self, object):
         self.add_source_item(object, object.get_title())
         
-    def add_renderer(self, device):
-        self.renderer_list.append_text(device.get_model_name())
+    def add_renderer(self, device, icon_file):
+        self.icons[device.get_udn()] = icon_file
+        self.renderer_list.get_model().append([device.get_model_name(), gtk.STOCK_OPEN, device])
         self.renderers.append(device)
         if len(self.renderers) == 1:
             self.renderer_list.set_active(1)
@@ -80,6 +82,27 @@ class PyGUPnPCPUI(object):
         if len(self.sources) == 1:
             self.source_list.set_active(1)
             
+    def remove_renderer(self, device):
+        self.remove_device(device, self.renderers, self.renderer_device, self.renderer_list)
+        
+    def remove_source(self, device):
+        self.remove_device(device, self.sources, self.source_device, self.source_list)
+      
+
+    def remove_device(self, device, cache_list, cache_item, ui_list):
+        for d in cache_list:
+            if d.get_udn() == device.get_udn():
+                cache_list.remove(d)
+                if d == cache_item:
+                    ui_list.set_active(0)
+
+        model = ui_list.get_model()
+        iter =  model.get_iter(0)
+        while model.iter_is_valid(iter):
+            iter = model.iter_next(iter)
+            if model.get_value(iter, 2).get_udn() == device.get_udn():
+                model.remove(iter)
+
     def make_pb(self, col, cell, model, iter):
         stock = model.get_value(iter, 1)
 	if not stock:
@@ -89,6 +112,7 @@ class PyGUPnPCPUI(object):
 
         if device and self.icons[device.get_udn()]:
             pb = gtk.gdk.pixbuf_new_from_file(self.icons[device.get_udn()])
+            pb = pb.scale_simple(22, 22, gtk.gdk.INTERP_HYPER)
         else:
             pb = self.source_list.render_icon(stock, gtk.ICON_SIZE_MENU, None)
 
@@ -107,13 +131,19 @@ class PyGUPnPCPUI(object):
 
         self.source_list.set_cell_data_func(cellpb, self.make_pb)
 	self.source_list.add_attribute(cell, 'text', 0)
-
 	self.source_list.get_model().append(["Media Sources", gtk.STOCK_OPEN, None])
         self.source_list.set_active(0)
         self.source_list.connect("changed", self.source_changed)
 
-        self.renderer_list = gtk.combo_box_new_text()
-	self.renderer_list.insert_text(0, "Media Players")
+        liststore = gtk.ListStore(str, str, object)
+        self.renderer_list = gtk.ComboBox(liststore)
+        cellpb = gtk.CellRendererPixbuf()
+	cell = gtk.CellRendererText()
+        self.renderer_list.pack_start(cellpb, False)
+        self.renderer_list.pack_start(cell, True)
+        self.renderer_list.set_cell_data_func(cellpb, self.make_pb)
+	self.renderer_list.add_attribute(cell, 'text', 0)
+	self.renderer_list.get_model().append(["Media Playerss", gtk.STOCK_OPEN, None])
         self.renderer_list.set_active(0)        
         self.renderer_list.connect("changed", self.renderer_changed)
 
@@ -141,6 +171,14 @@ class PyGUPnPCPUI(object):
         self.play_button = gtk.Button("Play")
         self.player.pack_start(self.play_button, False)
         self.play_button.show()
+
+        self.pause_button = gtk.Button("Pause")
+        self.player.pack_start(self.pause_button, False)
+        self.pause_button.show()
+
+        self.stop_button = gtk.Button("Stop")
+        self.player.pack_start(self.stop_button, False)
+        self.stop_button.show()
 
         self.main_bar.pack_start(self.source_browser)
         self.main_bar.pack_start(self.player)
