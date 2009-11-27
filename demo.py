@@ -121,6 +121,25 @@ class PyGUPnPCP(object):
     return False
 
 
+  def stop_object(self, source, renderer, item):
+    av_serv = self.get_av_for_renderer(renderer)
+    data = {"InstanceID": 0}
+    av_serv.send_action_hash("Stop", data, {})
+
+  def pause_object(self, source, renderer, item):
+    av_serv = self.get_av_for_renderer(renderer)
+    data = {"InstanceID": 0}
+    av_serv.send_action_hash("Pause", data, {})
+    
+  def get_av_for_renderer(self, renderer):
+    services = self.device_services[renderer.get_udn()]
+    av_serv = None
+    for s in services:
+      if "AVTransport" in s.get_service_type():
+        av_serv = s
+        break
+    return av_serv
+    
   def play_object(self, source, renderer, item):
     resources = item.get_resources()
     if len(resources) < 1:
@@ -128,15 +147,9 @@ class PyGUPnPCP(object):
 	return
     uri = resources[0].get_uri()
     data = {"InstanceID": "0", "CurrentURI": uri, "CurrentURIMetaData": uri} 
-    
-    services = self.device_services[renderer.get_udn()]
-    av_serv = None
-    for s in services:
-      if "AVTransport" in s.get_service_type():
-        av_serv = s
-        break
-    inst = {"InstanceID": 0}
-    av_serv.send_action_hash("Stop", data, {})
+    av_serv = self.get_av_for_renderer(renderer)
+    # Really shiould check state to see if this is needed...
+    #    av_serv.send_action_hash("Stop", data, {})
     av_serv.send_action_hash("SetAVTransportURI", data, {})
     av_serv.send_action_hash("Play", data, {})
 
@@ -192,14 +205,18 @@ class PyGUPnPCP(object):
 	  self.device_unavailable(cp, d)
 
     self.devices.append(device)
+  
     (icon_url, _, _, _, _) = device.get_icon_url(None, 32, 22, 22, False)
     icon_file = None
     if icon_url:
-      data = urllib2.urlopen(icon_url)
-      f, icon_file = tempfile.mkstemp()
-      os.write(f, ''.join(data.readlines()))
-      os.close(f)
-
+      try:
+        data = urllib2.urlopen(icon_url)
+        f, icon_file = tempfile.mkstemp()
+        os.write(f, ''.join(data.readlines()))
+        os.close(f)
+      except urllib2.URLError:
+        pass
+     
     self.device_services[device.get_udn()] = device.list_services()
     
     for s in self.device_services[device.get_udn()]:
