@@ -4,6 +4,7 @@ import pdb
 import pygtk, gtk
 
 from gui import PyGUPnPCPUI
+from action import UPnPAction
 
 class DIDLParser(object):
   def __init__(self,  xml_data):
@@ -145,13 +146,35 @@ class PyGUPnPCP(object):
     if len(resources) < 1:
 	print "Could not get a resource for item to play!"
 	return
+
     uri = resources[0].get_uri()
     data = {"InstanceID": "0", "CurrentURI": uri, "CurrentURIMetaData": uri} 
-    av_serv = self.get_av_for_renderer(renderer)
-    # Really shiould check state to see if this is needed...
-    #    av_serv.send_action_hash("Stop", data, {})
-    av_serv.send_action_hash("SetAVTransportURI", data, {})
-    av_serv.send_action_hash("Play", data, {})
+    av_serv = self.get_av_for_renderer(renderer) 
+    
+    act = UPnPAction(renderer,
+                     av_serv,
+                     "SetAVTransportURI",
+                     data)
+
+    self.execute_action(act)
+    
+    act = UPnPAction(renderer,
+                     av_serv,
+                     "Play",
+                     data)
+
+    self.execute_action(act)
+
+
+  def execute_action(self, action):
+    if not action.is_executable():
+      device = action.device_udn
+      services = self.device_services[device]
+      for s in services:
+        if s.get_udn() == action.service_udn:
+          action.service = s
+
+    action.execute()
 
   def children_loaded(self, service, action, data):
     """

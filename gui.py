@@ -200,9 +200,6 @@ class PyGUPnPCPUI(object):
         self.main_bar.show()
         self.source_browser.show()
 
-
-
-
         return self.main_bar
 
     def __init__(self, upnp_backend):
