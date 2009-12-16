@@ -4,6 +4,8 @@ import pygtk
 pygtk.require('2.0')
 import gtk, gobject
 
+from playlist import Playlist
+
 class PyGUPnPCPUI(object):
     def hello(self, widget, data=None):
         print "Hello World"
@@ -42,8 +44,7 @@ class PyGUPnPCPUI(object):
             self.stack.append(item.get_parent_id())
             self.upnp.load_children(self.source_device, item.get_id())
         elif isinstance(item, GUPnPAV.GUPnPDIDLLiteItem):
-            self.playlist_items.append(item)
-            self.playlist.get_model().append([item.get_title()])
+            self.playlist.add(item, item.get_title())
         else:
             if len(self.stack) > 0:
                 self.upnp.load_children(self.source_device, 
@@ -115,26 +116,23 @@ class PyGUPnPCPUI(object):
         cell.set_property('pixbuf', pb)
         return
 
-    def play(self, button):
-        selection = self.playlist.get_selection().get_selected_rows()
-        model = self.playlist.get_model()
-        first = model.get_value(model.get_iter_first(), 0)
-        item = self.playlist_items[0]
+    def play(self, playlist, item):
         if not self.source_device or not self.renderer_device:
             print "Missing either source or destination device"
             return
+
         print "Begin playing %s" % item.get_title()
         self.playing_item = item
         self.upnp.play_object(self.source_device,
                               self.renderer_device,
                               item)
         
-    def stop(self, button):
+    def stop(self, playlist, item):
         self.upnp.stop_object(self.source_device,
                               self.renderer_device,
                               self.playing_item)
 
-    def pause(self, button):
+    def pause(self, playlist, item):
         self.upnp.pause_object(self.source_device,
                               self.renderer_device,
                               self.playing_item)
@@ -163,7 +161,7 @@ class PyGUPnPCPUI(object):
         self.renderer_list.pack_start(cell, True)
         self.renderer_list.set_cell_data_func(cellpb, self.make_pb)
 	self.renderer_list.add_attribute(cell, 'text', 0)
-	self.renderer_list.get_model().append(["Media Playerss", gtk.STOCK_OPEN, None])
+	self.renderer_list.get_model().append(["Media Players", gtk.STOCK_OPEN, None])
         self.renderer_list.set_active(0)        
         self.renderer_list.connect("changed", self.renderer_changed)
 
@@ -187,44 +185,22 @@ class PyGUPnPCPUI(object):
         self.source_browser.append_column(col)
         self.source_browser.connect("row-activated", self.enqueue_or_dive)
 
-        self.player = gtk.VBox()
+        # -------
+        # Main bar packing / cleanup
+        # -------
+        self.playlist = Playlist()
 
-        self.control_box = gtk.HBox()
-
-        self.play_button = gtk.Button("Play")
-        self.control_box.pack_start(self.play_button, True)
-        self.play_button.connect("clicked", self.play)
-        self.play_button.show()
-
-        self.pause_button = gtk.Button("Pause")
-        self.control_box.pack_start(self.pause_button, True)
-        self.pause_button.connect("clicked", self.pause)
-        self.pause_button.show()
-
-        self.stop_button = gtk.Button("Stop")
-        self.control_box.pack_start(self.stop_button, True)
-        self.stop_button.connect("clicked", self.stop)
-        self.stop_button.show()
-
-        self.player.pack_start(self.control_box, False)
-        self.control_box.show()
-
-        tree_model2 = gtk.ListStore(str)
-        self.playlist = gtk.TreeView(tree_model2)
-        col2 = gtk.TreeViewColumn("Playlist")
-        col2.cell = gtk.CellRendererText()
-        col2.pack_start(col2.cell)
-        col2.set_attributes(col2.cell, text=0)
-        self.playlist.append_column(col2)
-        self.player.pack_start(self.playlist, True, padding=3)
+        self.playlist.connect("play", self.play)
+        self.playlist.connect("pause", self.pause)
+        self.playlist.connect("stop", self.stop)
 
         self.main_bar.pack_start(self.source_browser, padding=3)
-        self.main_bar.pack_start(self.player, padding=3)
+        self.main_bar.pack_start(self.playlist.build_ui(), padding=3)
 
         self.main_bar.show()
         self.source_browser.show()
-        self.playlist.show()
-        self.player.show()
+
+
 
 
         return self.main_bar
@@ -236,7 +212,6 @@ class PyGUPnPCPUI(object):
         self.icons = {}
         self.renderers = []
         self.items = []
-        self.playlist_items = []
         self.source_device = None
         self.stack = []
         
