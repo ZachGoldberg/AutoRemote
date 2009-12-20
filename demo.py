@@ -143,7 +143,8 @@ class PyGUPnPCP(object):
     
   def play_object(self, source, renderer, item):
     resources = item.get_resources()
-    if len(resources) < 1:
+    
+    if not resources or len(resources) < 1:
 	print "Could not get a resource for item to play!"
 	return
 
@@ -157,7 +158,7 @@ class PyGUPnPCP(object):
                      data)
 
     self.execute_action(act)
-    
+    data = {"InstanceID": "0", "CurrentURI": uri, "CurrentURIMetaData": uri, "Speed": 1} 
     act = UPnPAction(renderer,
                      av_serv,
                      "Play",
@@ -218,7 +219,8 @@ class PyGUPnPCP(object):
     self.introspections[service.get_udn()] = introspection
 
   def device_available(self, cp, device):
-    print "%s is now available" % device.get_model_name()
+    print "%s (%s) is now available" % (device.get_model_name(), device.get_friendly_name())
+
     for d in self.devices:
 	if d.get_udn() == device.get_udn():
           # We can only assume that the old one dropped off the network

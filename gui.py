@@ -74,7 +74,7 @@ class PyGUPnPCPUI(object):
 
     def add_source(self, device, icon_file):
         self.icons[device.get_udn()] = icon_file
-        self.source_list.get_model().append([device.get_model_name(), gtk.STOCK_OPEN, device])
+        self.source_list.get_model().append([device.get_friendly_name(), gtk.STOCK_OPEN, device])
         self.sources.append(device)
         if len(self.sources) == 1:
             self.source_list.set_active(1)
@@ -95,9 +95,9 @@ class PyGUPnPCPUI(object):
 
         model = ui_list.get_model()
         iter =  model.get_iter(0)
-        while model.iter_is_valid(iter):
+        while iter and model.iter_is_valid(iter):
             iter = model.iter_next(iter)
-            if model.get_value(iter, 2).get_udn() == device.get_udn():
+            if iter and model.get_value(iter, 2).get_udn() == device.get_udn():
                 model.remove(iter)
 
     def make_pb(self, col, cell, model, iter):
