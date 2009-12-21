@@ -91,7 +91,8 @@ class PyGUPnPCPUI(object):
         for d in cache_list:
             if d.get_udn() == device.get_udn():
                 cache_list.remove(d)
-                if d == cache_item:
+                if d.get_udn() == cache_item.get_udn():
+                    print len(cache_list)
                     if len(cache_list) > 1:
                         ui_list.set_active(1)
                     else:

@@ -43,13 +43,39 @@ class Playlist(gobject.GObject):
         self.emit("stop", self.get_selected_item()[0])
     
     def up(self, button):
-        selection = self.playlist_box.get_selection().get_selected_rows()
-                
+        store, selection = self.playlist_box.get_selection().get_selected_rows()
+        model, selected_row_iter = self.playlist_box.get_selection().get_selected()
+        
+        prev = model.get_iter_from_string(str(selection[0][0] - 1))
+        if not prev:
+            return
+        
+        model.move_before(selected_row_iter, prev)
+        temp = self.items[selection[0][0]]
+        self.items[selection[0][0]] = self.items[selection[0][0] - 1]
+        self.items[selection[0][0] - 1] = temp
+        
+        
     def down(self, button):
-        pass
-    
+        store, selection = self.playlist_box.get_selection().get_selected_rows()
+        model, selected_row_iter = self.playlist_box.get_selection().get_selected()
+        
+        next = model.iter_next(selected_row_iter)
+        if not next:
+            return
+        
+        model.move_after(selected_row_iter, next)
+
+        temp = self.items[selection[0][0]]
+        self.items[selection[0][0]] = self.items[selection[0][0] + 1]
+        self.items[selection[0][0] + 1] = temp
+        
     def rm(self, button):
-        pass
+        store, selection = self.playlist_box.get_selection().get_selected_rows()
+        self.items.pop(selection[0][0])
+
+        model, selected_row_iter = self.playlist_box.get_selection().get_selected()
+        model.remove(selected_row_iter)                
     
     def add(self, item, title):
         self.items.append(item)

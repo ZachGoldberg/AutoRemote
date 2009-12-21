@@ -10,7 +10,7 @@ class DIDLParser(object):
   def __init__(self,  xml_data):
     self.containers = []
     self.objects = []
-    print xml_data
+
     parser = GUPnPAV.GUPnPDIDLLiteParser()
     parser.connect("container_available", self.new_container)
     parser.connect("item_available", self.new_item)
@@ -143,10 +143,7 @@ class PyGUPnPCP(object):
     
   def play_object(self, source, renderer, item):
     resources = item.get_resources()
-    print resources
-    for i in resources:
-      print i.get_uri()
-      print i.get_protocol_info().get_mime_type()
+
     if not resources or len(resources) < 1:
 	print "Could not get a resource for item to play!"
         import pdb
