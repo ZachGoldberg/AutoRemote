@@ -179,7 +179,9 @@ class PyGUPnPCPUI(object):
 
     def init_main_bar(self):
         self.main_bar = gtk.HBox(homogeneous=True)
-        
+
+        self.source_browser_win = gtk.ScrolledWindow()
+
         tree_model = gtk.ListStore(str)
         self.source_browser = gtk.TreeView(tree_model)
         col = gtk.TreeViewColumn("Media Items in this Source")
@@ -188,7 +190,8 @@ class PyGUPnPCPUI(object):
         col.set_attributes(col.cell, text=0)
         self.source_browser.append_column(col)
         self.source_browser.connect("row-activated", self.enqueue_or_dive)
-
+        self.source_browser_win.add(self.source_browser)
+        self.source_browser_win.show()
         # -------
         # Main bar packing / cleanup
         # -------
@@ -198,7 +201,7 @@ class PyGUPnPCPUI(object):
         self.playlist.connect("pause", self.pause)
         self.playlist.connect("stop", self.stop)
 
-        self.main_bar.pack_start(self.source_browser, padding=3)
+        self.main_bar.pack_start(self.source_browser_win, padding=3)
         self.main_bar.pack_start(self.playlist.build_ui(), padding=3)
 
         self.main_bar.show()

@@ -89,6 +89,7 @@ class Playlist(gobject.GObject):
         # Playlist itself
         # -------
 
+        self.playlist_win = gtk.ScrolledWindow()
         tree_model2 = gtk.ListStore(str)
         self.playlist_box = gtk.TreeView(tree_model2)
         col2 = gtk.TreeViewColumn("Playlist")
@@ -96,8 +97,10 @@ class Playlist(gobject.GObject):
         col2.pack_start(col2.cell)
         col2.set_attributes(col2.cell, text=0)
         self.playlist_box.append_column(col2)
-        self.playlist.pack_start(self.playlist_box, True, padding=3)
         self.playlist_box.show()
+        self.playlist_win.add(self.playlist_box)
+        self.playlist_win.show()
+        self.playlist.pack_start(self.playlist_win, True, padding=3)
         # -------
         # Playlist Control Box
         # -------
@@ -123,5 +126,5 @@ class Playlist(gobject.GObject):
         self.playlist.pack_start(self.playlist_control, False, padding=3)
         self.playlist_control.show()
                                    
-        self.playlist.show()
+        self.playlist.show()        
         return self.playlist
