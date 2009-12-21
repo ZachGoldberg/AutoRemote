@@ -75,10 +75,11 @@ class PyGUPnPCPUI(object):
     def add_source(self, device, icon_file):
         self.icons[device.get_udn()] = icon_file
         self.source_list.get_model().append([device.get_friendly_name(), gtk.STOCK_OPEN, device])
+        
         self.sources.append(device)
         if len(self.sources) == 1:
             self.source_list.set_active(1)
-            
+    
     def remove_renderer(self, device):
         self.remove_device(device, self.renderers, self.renderer_device, self.renderer_list)
         
@@ -91,7 +92,10 @@ class PyGUPnPCPUI(object):
             if d.get_udn() == device.get_udn():
                 cache_list.remove(d)
                 if d == cache_item:
-                    ui_list.set_active(0)
+                    if len(cache_list) > 1:
+                        ui_list.set_active(1)
+                    else:
+                        ui_list.set_active(0)
 
         model = ui_list.get_model()
         iter =  model.get_iter(0)
@@ -205,6 +209,7 @@ class PyGUPnPCPUI(object):
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
 
+        self.playing_item = None
         self.sources = []
         self.icons = {}
         self.renderers = []
