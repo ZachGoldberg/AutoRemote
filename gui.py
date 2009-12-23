@@ -92,7 +92,6 @@ class PyGUPnPCPUI(object):
             if d.get_udn() == device.get_udn():
                 cache_list.remove(d)
                 if d.get_udn() == cache_item.get_udn():
-                    print len(cache_list)
                     if len(cache_list) > 1:
                         ui_list.set_active(1)
                     else:
@@ -126,7 +125,9 @@ class PyGUPnPCPUI(object):
             print "Missing either source or destination device"
             return
 
-        print "Begin playing %s" % item.get_title()
+	if item:
+          print "Begin playing %s" % item.get_title()
+
         self.playing_item = item
         self.upnp.play_object(self.source_device,
                               self.renderer_device,

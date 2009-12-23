@@ -22,7 +22,9 @@ class UPnPAction(object):
 
     def execute(self):
         if self.is_executable():
+            print "Send action"
             self.service.send_action_hash(self.action, self.data, {})
+            print "Send action done"
 
     def is_executable(self):
         return bool(self.service)
