@@ -1,41 +1,33 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
-import os, urllib2, tempfile, atexit
 import pdb
 import pygtk, gtk
 
 from gui import PyGUPnPCPUI
+from wifiloc import WifiLoc
 from action import UPnPAction
 from UPnPDeviceManager import UPnPDeviceManager
 
-class PyGUPnPCP(object):
+class AutoRemote(object):
   def __init__(self):
-    self.devices = []
-    self.introspections = {}
-    self.device_services = {}
-    
-    self.sources = []
-    self.renderers = []
     self.ui = None
-    self.cps = []
-    self.contexts = []  
-    self.created_files = []
-
-    atexit.register(self.cleanup_files)
-
-  def cleanup_files(self):
-    for i in self.created_files:
-      os.unlink(i)
-    
 
   def main(self):
 
     self.device_mgr = UPnPDeviceManager()
     self.device_mgr.connect("device-available", self.device_available)
     self.device_mgr.connect("device-unavailable", self.device_available)
-    #self.ui = PyGUPnPCPUI(self)
-    #self.ui.main()
+    self.wifiloc = WifiLoc("eth1")
+
+    GObject.timeout_add(5000, self.check_current_location)
+
     import gtk
     gtk.main()
+
+  def check_current_location(self):
+    self.wifiloc.update_location()
+    print self.wifiloc.getCurrentAP().essid
+    return True
+    
 
   def device_available(self, manager, device):
     pass
@@ -54,7 +46,7 @@ class PyGUPnPCP(object):
     av_serv.send_action_hash("Pause", data, {})
     
   def get_av_for_renderer(self, renderer):
-    services = self.device_services[renderer.get_udn()]
+    services = self.device_manager.device_services[renderer.get_udn()]
     av_serv = None
     for s in services:
       if "AVTransport" in s.get_service_type():
@@ -123,7 +115,7 @@ class PyGUPnPCP(object):
     The UI will call this and then continue.  The calback for the
     async browse function will populate the UI
     """
-    serv = self.is_source(device.get_udn())
+    serv = self.device_manager.is_source(device.get_udn())
   
     assert serv
 
@@ -138,62 +130,10 @@ class PyGUPnPCP(object):
 
 
 if __name__ == "__main__":
-  prog = PyGUPnPCP()
+  prog = AutoRemote()
   prog.main()
 
 
 
 
-
-
-
-#  for service in device_services[device.get_udn()]:
-#      introspections.remove(service.get_udn())
-
-#  if device.get_model_name() == "MediaTomb":
-#      for service in device.list_services():
-#          print service.get_service_type()
-#          if "ContentDirectory" in service.get_service_type():
-#              service.get_introspection_async(server_introspection, None)
-
-
-
-#  actions = intro.list_actions()
-#  print len(actions)
-#  for i in actions:
-#      print service.get_service_type(), i.name      
-#      if i.name == "SetAVTransportURI":
-#          dict = {"Speed": "1", "InstanceID": "0"}
-#          muri = "http://192.168.1.55:49152/content/media/object_id=6327&res_id=0&ext=.mp3"
-#          curi = "http://192.168.1.55:49152/content/media/object_id=6327&res_id=0&ext=.mp3"
-#          data = {"InstanceID": "0", "CurrentURI": curi, "CurrentURIMetaData": muri} 
-#          service.send_action_hash(i.name, data, {})
-#	  print "Done setting URI"
-#          data2 = {"Speed": "1", "InstanceID": "0"}
-#          service.send_action_hash("Stop", {"InstanceID": 0}, {})
-#          print "Done Stopping"
-#          service.send_action_hash("Play", data2, {})
-
-
-  
-
-#def server_introspection(service, introspection, error, userdata):
-#  print "Got server introspection"
-#  for i in introspection.list_actions():
-#      if i.name == "Browse":
-#         in_data = {"ObjectID": "0", "BrowseFlag": "BrowseDirectChildren",
-#		    "Filter": "", "StartingIndex": "0", "RequestCount": "0",
-#		    "SortCriteria": ""}
-#         out_data = {"Result": "", "NumberReturned": "", "TotalMatches": "", "UpdateID": ""}#
-#	 print "SEND ACTION"
-#         return_data = service.send_action_hash("Browse", in_data, out_data)
-#	 global serv
-#	 serv=service
-#	 print "Good news!"
-#	 print return_data[1]["Result"]
-#	 parser = GUPnPAV.GUPnPDIDLLiteParser()
-#	 parser.connect("container_available", new_container)
-#	 parser.connect("item_available", new_item)
-#	 parser.parse_didl(return_data[1]["Result"])
-#	 print len(objects)
 

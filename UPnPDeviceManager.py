@@ -1,5 +1,5 @@
 from gi.repository import GObject, GUPnP, GLib, GSSDP
-import urllib2, tempfile, os
+import urllib2, tempfile, os, atexit
 
 class UPnPDeviceManager(GObject.GObject):
 
@@ -64,7 +64,8 @@ class UPnPDeviceManager(GObject.GObject):
                          GObject.SIGNAL_RUN_LAST, 
                          GObject.TYPE_BOOLEAN, (GObject.TYPE_PYOBJECT,))
 
-      
+      atexit.register(self.cleanup_files)
+
       self.contexts = []
       self.cps = []
       self.devices = []
@@ -82,7 +83,10 @@ class UPnPDeviceManager(GObject.GObject):
       self.ctx_mgr = GUPnP.ContextManager.new(self.main_ctx, 0)
       self.ctx_mgr.connect("context_available", self.new_ctx)
 
-
+  def cleanup_files(self):
+    for i in self.created_files:
+      os.unlink(i)
+    
   def new_ctx(self, ctx_mgr, ctx):
 
       self.contexts.append(ctx)
