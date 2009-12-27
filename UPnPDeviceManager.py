@@ -1,4 +1,5 @@
 from gi.repository import GObject, GUPnP, GLib, GSSDP
+import urllib2, tempfile, os
 
 class UPnPDeviceManager(GObject.GObject):
 
@@ -70,8 +71,9 @@ class UPnPDeviceManager(GObject.GObject):
       self.sources = []
       self.renderers = []
       self.device_services = {}
-      self.introspectiosn = {}
-      
+      self.introspections = {}
+      self.created_files = []
+
       # Get a default maincontext
       self.main_ctx = GLib.main_context_default() 
         
@@ -98,7 +100,6 @@ class UPnPDeviceManager(GObject.GObject):
       self.cps.append(cp)
 
   def device_available(self, cp, device):
-    print "%s is now available" % device.get_model_name()
     for d in self.devices:
 	if d.get_udn() == device.get_udn():
           # We can only assume that the old one dropped off the network
@@ -117,7 +118,7 @@ class UPnPDeviceManager(GObject.GObject):
         f, device.icon_file = tempfile.mkstemp()
         os.write(f, ''.join(data.readlines()))
         os.close(f)
-        self.created_files.append(icon_file)
+        self.created_files.append(device.icon_file)
 
       except urllib2.URLError:
         pass
@@ -126,6 +127,9 @@ class UPnPDeviceManager(GObject.GObject):
     
     for s in self.device_services[device.get_udn()]:
       s.get_introspection_async(self.server_introspection, None)
+
+    device.is_source = False
+    device.is_renderer = False
 
     if self.is_source(device):
       self.sources.append(device)
@@ -138,21 +142,19 @@ class UPnPDeviceManager(GObject.GObject):
     self.emit("device-available", device)
 
   def device_unavailable(self, cp, device):
-    print "%s has disappeared!" % device.get_model_name()
     for d in self.devices:
       if d.get_udn() == device.get_udn():
         self.devices.remove(d)
 
-
     for d in self.sources:
       if d.get_udn() == device.get_udn():
         self.sources.remove(d)
-        self.ui.remove_source(d)
         
     for d in self.renderers:
       if d.get_udn() == device.get_udn():
         self.renderers.remove(d)
-        self.ui.remove_renderer(d)
+
+    self.emit("device-unavailable", device)
 
   def server_introspection(self, service, introspection, error, userdata):
     self.introspections[service.get_udn()] = introspection
