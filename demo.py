@@ -5,23 +5,7 @@ import pygtk, gtk
 
 from gui import PyGUPnPCPUI
 from action import UPnPAction
-
-class DIDLParser(object):
-  def __init__(self,  xml_data):
-    self.containers = []
-    self.objects = []
-
-    parser = GUPnPAV.GUPnPDIDLLiteParser()
-    parser.connect("container_available", self.new_container)
-    parser.connect("item_available", self.new_item)
-    parser.parse_didl(xml_data)
-        
-  def new_item(self, node, object):
-    self.objects.append(object)
-
-  def new_container(self, node, object):
-    self.containers.append(object)
-
+from UPnPDeviceManager import UPnPDeviceManager
 
 class PyGUPnPCP(object):
   def __init__(self):
@@ -44,82 +28,19 @@ class PyGUPnPCP(object):
     
 
   def main(self):
-    GObject.threads_init()
 
-    # Get a default maincontext
-    self.main_ctx = GLib.main_context_default() 
+    self.device_mgr = UPnPDeviceManager()
+    self.device_mgr.connect("device-available", self.device_available)
+    self.device_mgr.connect("device-unavailable", self.device_available)
+    #self.ui = PyGUPnPCPUI(self)
+    #self.ui.main()
+    import gtk
+    gtk.main()
 
-    self.ctx_mgr = GUPnP.ContextManager.new(self.main_ctx, 0)
-    self.ctx_mgr.connect("context_available", self.new_ctx)
-
-#    GObject.timeout_add(3000, self.list_cur_devices)
-
-    self.ui = PyGUPnPCPUI(self)
-    self.ui.main()
-
-  def new_ctx(self, ctx_mgr, ctx):
-
-    self.contexts.append(ctx)
-
-    # Bind to the context in the maincontext on any port
-    cp  = GUPnP.ControlPoint().new(ctx, "upnp:rootdevice")
-
-    # Use glib style .connect() as a callback on the controlpoint to listen for new devices
-    cp.connect("device-proxy-available", self.device_available)
-    cp.connect("device-proxy-unavailable", self.device_unavailable)
-
-    # "Tell the Control Point to Start Searching"
-    GSSDP.ResourceBrowser.set_active(cp, True)
-    
-    self.cps.append(cp)
-
-  def list_cur_devices(self):
-    for d in self.devices:
-      print "Device: %s (%s)" % (d.get_model_name(), d.get_udn())
-      for s in self.device_services[d.get_udn()]:
-        print "\tService: %s" % s.get_service_type()
-        if not s.get_udn() in self.introspections:
-          continue
-        for a in self.introspections[s.get_udn()].list_actions():
-          print "\t\tAction: %s" % a.name
-          
-    print "Current Sources:"
-    for i in self.sources:
-      print "\t%s (%s)" % (i.get_model_name(), i.get_udn())
-
-    print "Current Renderers:"
-    for i in self.renderers:
-      print "\t%s (%s)" % (i.get_model_name(), i.get_udn())
-
-    print "-" * 30
-
-    return True
-
-  def is_source(self, device):
-    if not isinstance(device, basestring):
-      device = device.get_udn()
-  
-    if not device in self.device_services:
-      return False
-  
-    for s in self.device_services[device]:
-      if "ContentDirectory" in s.get_service_type():
-        return s
-  
-    return False
-
-  def is_renderer(self, device):
-    if not isinstance(device, basestring):
-      device = device.get_udn()
-  
-    if not device in self.device_services:
-      return False
-  
-    for s in self.device_services[device]:
-      if "AVTransport" in s.get_service_type():
-        return s
-  
-    return False
+  def device_available(self, manager, device):
+    pass
+  def device_unavailable(self, manager, device):
+    pass
 
 
   def stop_object(self, source, renderer, item):
@@ -214,64 +135,7 @@ class PyGUPnPCP(object):
     if not return_data:
       print "Error initiating the Browse action"
   
-  def server_introspection(self, service, introspection, error, userdata):
-    self.introspections[service.get_udn()] = introspection
 
-  def device_available(self, cp, device):
-    print "%s is now available" % device.get_model_name()
-    for d in self.devices:
-	if d.get_udn() == device.get_udn():
-          # We can only assume that the old one dropped off the network
-          # and didn't tell us about it.  So manually remove it then proceed
-          # to readd.
-          print "Duplicate device online?  Removing old entry"
-	  self.device_unavailable(cp, d)
-
-    self.devices.append(device)
-  
-    (icon_url, _, _, _, _) = device.get_icon_url(None, 32, 22, 22, False)
-    icon_file = None
-    if icon_url:
-      try:
-        data = urllib2.urlopen(icon_url)
-        f, icon_file = tempfile.mkstemp()
-        os.write(f, ''.join(data.readlines()))
-        os.close(f)
-      except urllib2.URLError:
-        pass
-     
-    self.device_services[device.get_udn()] = device.list_services()
-    
-    for s in self.device_services[device.get_udn()]:
-      s.get_introspection_async(self.server_introspection, None)
-
-    if self.is_source(device):
-      self.sources.append(device)
-      self.ui.add_source(device, icon_file)
-
-    if self.is_renderer(device):
-      self.renderers.append(device)
-      self.ui.add_renderer(device, icon_file)
-
-    if icon_file:
-      self.created_files.append(icon_file)
-
-  def device_unavailable(self, cp, device):
-    print "%s has disappeared!" % device.get_model_name()
-    for d in self.devices:
-      if d.get_udn() == device.get_udn():
-        self.devices.remove(d)
-
-
-    for d in self.sources:
-      if d.get_udn() == device.get_udn():
-        self.sources.remove(d)
-        self.ui.remove_source(d)
-        
-    for d in self.renderers:
-      if d.get_udn() == device.get_udn():
-        self.renderers.remove(d)
-        self.ui.remove_renderer(d)
 
 if __name__ == "__main__":
   prog = PyGUPnPCP()
