@@ -1,20 +1,23 @@
-from pythonwifi.iwlibs import Wireless
+from pythonwifi.iwlibs import Wireless, getNICnames
 from iocapture import IOCapture
 
 class WifiLoc(object):
 
-  def __init__(self, interface):
-    self.interface = interface
+  def __init__(self):
+    self.interfaces = getNICnames()
 
     self.known_networks = {}
-    self.w = Wireless(self.interface)
+    self.wifis = []
+    for i in self.interfaces:
+      self.wifis.append(Wireless(i))
 
   def update_location(self):
     IOCapture.startCapture()
     networks = []
 
     try:
-      networks = self.w.scan()
+      for i in self.wifis:
+        networks.extend(self.w.scan())
     finally:
       IOCapture.stopCapture()
 
@@ -34,13 +37,14 @@ class WifiLoc(object):
     return networks[0]
 
   @classmethod
-  def topTen(clazz, interface):
+  def topTen(clazz):
     IOCapture.startCapture()
     networks = []
 
     try:
-      w = Wireless(interface)
-      networks = w.scan()
+      for i in getNICnames():
+        w = Wireless(i)
+        networks.extend(w.scan())
     finally:
       IOCapture.stopCapture()
 

@@ -16,7 +16,7 @@ class AutoRemote(object):
     self.device_mgr = UPnPDeviceManager()
     self.device_mgr.connect("device-available", self.device_available)
     self.device_mgr.connect("device-unavailable", self.device_available)
-    self.wifiloc = WifiLoc("eth1")
+    self.wifiloc = WifiLoc()
 
     GObject.timeout_add(5000, self.check_current_location)
 
