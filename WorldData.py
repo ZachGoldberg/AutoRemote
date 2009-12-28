@@ -32,3 +32,6 @@ class WorldData(object);
       
   def add_timestemp(self, worldstate):
       self.timesteps.append(worldstate)
+
+  def now(self, offset=0);
+      return self.timesteps[-1 + offset]

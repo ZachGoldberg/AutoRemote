@@ -38,7 +38,7 @@ class UPnPAction(object):
                 })
 
     @classmethod
-    def loads(datas):
+    def loads(claz, datas):
         data = simplejson.loads(datas)
         return UPnPAction(
             data["device"],

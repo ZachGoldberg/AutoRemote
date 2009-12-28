@@ -6,6 +6,7 @@ from gui import PyGUPnPCPUI
 from wifiloc import WifiLoc
 from action import UPnPAction
 from UPnPDeviceManager import UPnPDeviceManager
+import TriggerMaster
 
 class AutoRemote(object):
   def __init__(self, triggers):
