@@ -1,34 +1,62 @@
-from pythonwifi.iwlibs import Wireless
+from pythonwifi.iwlibs import Wireless, getNICnames
 from iocapture import IOCapture
 
+class WifiLoc(object):
 
+  def __init__(self):
+    self.interfaces = getNICnames()
 
-def getAvailableAPs():
-  # pythonwifi has print statements... capture it and silence!
-  IOCapture.startCapture()
+    self.known_networks = {}
+    self.wifis = []
+    for i in self.interfaces:
+      self.wifis.append(Wireless(i))
 
-  try:
-      w = Wireless("eth1") 
-      networks = w.scan()
-  finally:
+  def update_location(self):
+    IOCapture.startCapture()
+    networks = []
+
+    try:
+      for i in self.wifis:
+        networks.extend(self.w.scan())
+    finally:
       IOCapture.stopCapture()
 
-  return networks
+    for network in networks:
+      if not network.bssid in self.known_networks:
+        self.known_networks[network.bssid] = network
 
-def getCurrentAP():
+    self.reachable_networks = networks
+    
+  def getCurrentAP(self):
 
-  networks = getAvailableAPs()
-  networks.sort(lambda a,b: cmp(a.quality.quality, b.quality.quality), None, True)
+    networks = self.reachable_networks
+    networks.sort(lambda a,b: cmp(a.quality.quality,
+                                             b.quality.quality), 
+                             None, True)
 
-  return networks[0]
+    return networks[0]
 
-def topTen():
-  networks = getAvailableAPs()
+  @classmethod
+  def topTen(clazz):
+    IOCapture.startCapture()
+    networks = []
 
-  networks.sort(lambda a,b: cmp(a.quality.quality, b.quality.quality), None, True)
+    try:
+      for i in getNICnames():
+        w = Wireless(i)
+        networks.extend(w.scan())
+    finally:
+      IOCapture.stopCapture()
 
-  print "Networks sorted by probable proximity"
+    
+    networks.sort(lambda a,b: cmp(a.quality.quality, b.quality.quality), 
+                  None, True)
 
-  for network in enumerate(networks):
-      print '    %s) %s (%s, %s)'%(network[0],network[1].essid, network[1].quality.siglevel,network[1].quality.quality)
+    print "Networks sorted by probable proximity"
 
+    for network in enumerate(networks):
+      print '    %s) %s (%s, %s)' % (network[0], network[1].essid,
+                                     network[1].quality.siglevel,
+                                     network[1].quality.quality)
+      
+    
