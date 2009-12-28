@@ -1,6 +1,6 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
 import pdb
-import pygtk, gtk
+import pygtk, gtk, simplejson
 
 from gui import PyGUPnPCPUI
 from wifiloc import WifiLoc
@@ -8,8 +8,9 @@ from action import UPnPAction
 from UPnPDeviceManager import UPnPDeviceManager
 
 class AutoRemote(object):
-  def __init__(self):
-    self.ui = None
+  def __init__(self, triggers):
+    self.wifi_location = None
+    self.triggers = triggers
 
   def main(self):
 
@@ -26,7 +27,15 @@ class AutoRemote(object):
 
   def check_current_location(self):
     self.wifiloc.update_location()
-    print self.wifiloc.getCurrentAP().essid
+    loc = self.wifiloc.getCurrentAP()
+    if loc.bssid != self.wifi_location.bssid:
+	print "Location Changed!  Running Triggers..."
+
+
+    self.wifi_location = loc
+
+	
+
     return True
     
 
@@ -133,10 +142,6 @@ class AutoRemote(object):
   
 
 if __name__ == "__main__":
-  prog = AutoRemote()
+  prog = AutoRemote(simplejson.load(open("./triggers.json")))
   prog.main()
-
-
-
-
 
