@@ -17,7 +17,7 @@ class WifiLoc(object):
 
     try:
       for i in self.wifis:
-        networks.extend(self.w.scan())
+        networks.extend(i.scan())
     finally:
       IOCapture.stopCapture()
 
