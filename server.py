@@ -19,6 +19,7 @@ class AutoRemote(object):
     self.wifiloc = WifiLoc()
 
     GObject.timeout_add(5000, self.check_current_location)
+    GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
     import gtk
     gtk.main()
