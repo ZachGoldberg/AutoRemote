@@ -1,1 +1,1 @@
-[]
+[{"upnpaction": "{\"device\": \"device\", \"action\": \"action\", \"data\": \"\\\"{}\\\"\", \"service\": \"service\"}", "trigger_class": "TimeChanged", "time_delta": 10}]
