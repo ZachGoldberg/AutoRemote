@@ -30,7 +30,7 @@ class AutoRemote(object):
     import gtk
     gtk.main()
 
-  def get_worldstate(self):
+  def get_world_state(self):
     worldState = WorldState()
 
     self.wifiloc.update_location()
@@ -40,8 +40,8 @@ class AutoRemote(object):
     return worldState
 
   def check_triggers(self):
-    self.world.add_timestep(self.get_worldstate())
-    triggermaster = TriggerMaster(simplejson.load(open('triggers.json'))
+    self.world.add_timestep(self.get_world_state())
+    triggermaster = TriggerMaster(simplejson.load(open('triggers.json')))
     triggermaster.run_triggers()
 
     return True
