@@ -17,7 +17,15 @@ class TriggerMaster(object):
       for i in triggerdata:         
          loaded_triggers.append(triggers.Trigger.Trigger.loads(i))
 
+      # Need to interact with a device manager here to populate the actions properly
+
       return loaded_triggers
+
+   def run_triggers(world):
+     for trigger in self.triggers:
+        if trigger.is_triggered(world):
+          trigger.execute_action()
+   
 
    @classmethod
    def getTriggerTypes(clz):

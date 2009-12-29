@@ -2,11 +2,13 @@ from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
 import pdb
 import pygtk, gtk, simplejson
 
+from datetime import datetime
 from gui import PyGUPnPCPUI
 from wifiloc import WifiLoc
 from action import UPnPAction
 from UPnPDeviceManager import UPnPDeviceManager
-import TriggerMaster
+from TriggerMaster import TriggerMaster
+from WorldData import WorldData, WorldState
 
 class AutoRemote(object):
   def __init__(self, triggers):
@@ -20,22 +22,27 @@ class AutoRemote(object):
     self.device_mgr.connect("device-unavailable", self.device_available)
     self.wifiloc = WifiLoc()
 
-    GObject.timeout_add(5000, self.check_current_location)
+    self.world = WorldData()
+
+    GObject.timeout_add(5000, self.check_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
     import gtk
     gtk.main()
 
-  def check_current_location(self):
+  def get_worldstate(self):
+    worldState = WorldState()
+
     self.wifiloc.update_location()
-    loc = self.wifiloc.getCurrentAP()
-    if loc.bssid != self.wifi_location.bssid:
-	print "Location Changed!  Running Triggers..."
+    worldState.set_wifi_location(self.wifiloc.getCurrentAP())
+    worldState.set_time(datetime.now())
 
+    return worldState
 
-    self.wifi_location = loc
-
-	
+  def check_triggers(self):
+    self.world.add_timestep(self.get_worldstate())
+    triggermaster = TriggerMaster(simplejson.load(open('triggers.json'))
+    triggermaster.run_triggers()
 
     return True
     

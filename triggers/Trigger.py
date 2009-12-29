@@ -7,9 +7,13 @@ class Trigger(object):
           setattr(self, key, value)
 
       self.action = UPnPAction.loads(triggerdata["upnpaction"])
-      
-   def is_triggered(world_data):
+      #@TODO Need to make action executable by passing it to a device manager here
+
+   def is_triggered(self, world_data):
       return False
+
+   def execute_action(self):
+     self.action.execute()
 
    def dumps(self):
       data = self.__dict__.copy()
