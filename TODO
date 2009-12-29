@@ -1,0 +1,9 @@
+* Test chained actions
+* Build a UI to build actions
+* Need to check in run_triggers() if a device or service has changed and 
+  re-activate (just call activate each time?  only activate if trigger 
+  actually fires?)
+* How to handle updates to the json trigger description?  Drop the world and 
+  reload from scratch?  Just reboot the server?
+* Documentation
+* Discover why UPNPAction was json encoded one too many times

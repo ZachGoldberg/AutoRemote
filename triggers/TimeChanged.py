@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from Trigger import Trigger
 import triggers
 
-
 class TimeChanged (Trigger):
    """
    A trigger which can fire when a certain amount of Time or a specific Time passes
@@ -21,12 +20,6 @@ class TimeChanged (Trigger):
       if not self.active:
          return False
       
-      print worlddata.now().get_time()
-      print self.checkpoint_time
-      print (worlddata.now().get_time() - self.checkpoint_time)
-      print ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
-         seconds=self.time_delta))
-
       if self.time_delta > 0 and ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
          seconds=self.time_delta)):
          if self.cycle_trigger:

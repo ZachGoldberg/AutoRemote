@@ -29,7 +29,6 @@ class TriggerMaster(object):
             self.device_mgr.activate_action(trigger.action)
             
          if trigger.is_triggered(world):
-            print "Executing a trigger!"
             trigger.execute_action()
             if not trigger.reusable:
                trigger.active = False

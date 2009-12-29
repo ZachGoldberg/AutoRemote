@@ -60,13 +60,8 @@ class UPnPDeviceManager(GObject.GObject):
       if d.get_udn() == action.device_udn:
         device = d
 
-    service = None
-    print self.device_services
-    print self.device_services.get(action.device_udn)
-    print action.device_udn
-    print action.service_type
+    service = None  
     for s in self.device_services.get(action.device_udn, []):
-      print "service udn: %s, %s" % (s.get_service_type(), action.service_type)
       if s.get_service_type() == action.service_type:
         service = s
 

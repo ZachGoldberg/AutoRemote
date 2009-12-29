@@ -7,7 +7,6 @@ class Trigger(object):
           setattr(self, key, value)
 
       self.action = UPnPAction.loads(triggerdata["upnpaction"])
-      #@TODO Need to make action executable by passing it to a device manager here
 
       if not hasattr(self, "reusable"):
          self.reusable = False

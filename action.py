@@ -20,7 +20,6 @@ class UPnPAction(object):
         self.action = action
         self.data = data
 
-        # Allow for chaining
         self.next_action = next_action
 
     def activate(self, device, service):
@@ -30,7 +29,7 @@ class UPnPAction(object):
 
     def execute(self):
         if self.is_executable():
-            print "Send action %s %s" % (self.action, self.data.__class__)
+            print "Send action"
             self.service.send_action_hash(str(self.action), self.data, {})
             print "Send action done"
         else:
@@ -40,6 +39,7 @@ class UPnPAction(object):
         return bool(self.service)
 
     is_activated = is_executable
+    
     def dumps(self):
         next_action = None
         if self.next_action:
@@ -64,6 +64,5 @@ class UPnPAction(object):
             data["device"],
             data["service"],
             data["action"],
-            simplejson.loads(data["data"])
-            
+            simplejson.loads(data["data"])          
             )
