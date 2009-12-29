@@ -4,7 +4,10 @@ from iocapture import IOCapture
 class WifiLoc(object):
 
   def __init__(self):
-    self.interfaces = getNICnames()
+    try:
+        self.interfaces = getNICnames()
+    except:
+        self.interfaces = []
 
     self.known_networks = {}
     self.wifis = []
@@ -34,7 +37,10 @@ class WifiLoc(object):
                                              b.quality.quality), 
                              None, True)
 
-    return networks[0]
+    if networks:
+      return networks[0]
+    else:
+      return None
 
   @classmethod
   def topTen(clazz):

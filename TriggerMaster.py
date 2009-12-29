@@ -2,8 +2,9 @@ import triggers
 from action import UPnPAction
 
 class TriggerMaster(object):
-   def __init__(self, triggerdata):
+   def __init__(self, triggerdata, device_mgr):
        self.triggerdata = triggerdata
+       self.device_mgr = device_mgr
        self.triggers = self.load_triggers(triggerdata)
 
 
@@ -14,17 +15,24 @@ class TriggerMaster(object):
          classes_by_name[i.__name__] = i
          
       loaded_triggers = []
-      for i in triggerdata:         
-         loaded_triggers.append(triggers.Trigger.Trigger.loads(i))
-
-      # Need to interact with a device manager here to populate the actions properly
-
+      for i in triggerdata:
+         trigger = triggers.Trigger.Trigger.loads(i)
+         loaded_triggers.append(trigger)
+         self.device_mgr.activate_action(trigger.action)
+         
       return loaded_triggers
 
-   def run_triggers(world):
-     for trigger in self.triggers:
-        if trigger.is_triggered(world):
-          trigger.execute_action()
+   def run_triggers(self, world):
+      
+      for trigger in self.triggers:
+         if not trigger.action.is_activated():
+            self.device_mgr.activate_action(trigger.action)
+            
+         if trigger.is_triggered(world):
+            print "Executing a trigger!"
+            trigger.execute_action()
+            if not trigger.reusable:
+               trigger.active = False
    
 
    @classmethod

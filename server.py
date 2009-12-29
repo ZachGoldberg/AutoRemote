@@ -23,7 +23,8 @@ class AutoRemote(object):
     self.wifiloc = WifiLoc()
 
     self.world = WorldData()
-
+    self.triggermaster = TriggerMaster(simplejson.load(open('triggers.json')), self.device_mgr)
+    
     GObject.timeout_add(5000, self.check_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
@@ -41,8 +42,7 @@ class AutoRemote(object):
 
   def check_triggers(self):
     self.world.add_timestep(self.get_world_state())
-    triggermaster = TriggerMaster(simplejson.load(open('triggers.json')))
-    triggermaster.run_triggers()
+    self.triggermaster.run_triggers(self.world)
 
     return True
     

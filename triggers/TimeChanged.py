@@ -1,17 +1,38 @@
+from datetime import datetime, timedelta
+
 from Trigger import Trigger
 import triggers
+
 
 class TimeChanged (Trigger):
    """
    A trigger which can fire when a certain amount of Time or a specific Time passes
    """
    def __init__(self, triggerdata):
-      super(TimeChanged, self).__init__(triggerdata)
+      super(TimeChanged, self).__init__(triggerdata)      
+      self.checkpoint_time = datetime.now()
+      if not hasattr(self, "time_delta"):
+         self.time_delta = -1
+         
+      if not hasattr(self, "cycle_trigger"):
+         self.cycle_trigger = False
 
    def is_triggered(self, worlddata):
-       if worlddata.now().wifi_location.bssid != worlddata.now(-1).wifi_location.bssid:
-           if worlddata.now().wifi_location.bssid == self.trigger_bssid:
-               return True
-       return False
+      if not self.active:
+         return False
+      
+      print worlddata.now().get_time()
+      print self.checkpoint_time
+      print (worlddata.now().get_time() - self.checkpoint_time)
+      print ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
+         seconds=self.time_delta))
+
+      if self.time_delta > 0 and ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
+         seconds=self.time_delta)):
+         if self.cycle_trigger:
+            self.checkpoint_time = datetime.now()
+         return True
+       
+      return False
 
 triggers.register_trigger(TimeChanged)

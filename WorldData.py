@@ -30,7 +30,7 @@ class WorldData(object):
   def __init__(self):
       self.timesteps = []
       
-  def add_timestemp(self, worldstate):
+  def add_timestep(self, worldstate):
       self.timesteps.append(worldstate)
 
   def now(self, offset=0):
