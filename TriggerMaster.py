@@ -29,7 +29,7 @@ class TriggerMaster(object):
          # trigger references may have dropped off the network etc.
          self.device_mgr.activate_action(trigger.action)
             
-         if trigger.is_triggered(world):
+         if trigger.is_triggered(world):            
             trigger.execute_action()
             if not trigger.reusable:
                trigger.active = False

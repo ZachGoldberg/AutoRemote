@@ -17,7 +17,13 @@ class Trigger(object):
       return False
 
    def execute_action(self):
-     self.action.execute()
+      """
+      It may make good sense for a trigger to override this function
+      and modify the state of the trigger based upon whether or not the
+      trigger could actually be run (action.is_executable())   
+      """
+      if self.action.is_executable():
+         self.action.execute()
 
    def dumps(self):
       data = self.__dict__.copy()

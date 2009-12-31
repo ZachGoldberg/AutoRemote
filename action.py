@@ -26,11 +26,9 @@ class UPnPAction(object):
         self.device = device
         self.service = service
         if self.is_activated():
-            print "ACTIVATED"
+            print "ACTIVATED", self.device, self.service
         else:
-            print "INACTIVATED"
-
-        print self.device, self.service, 
+            print "INACTIVATED", self.device, self.service
 
     def execute(self):
         if self.is_executable():
