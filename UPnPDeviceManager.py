@@ -55,6 +55,10 @@ class UPnPDeviceManager(GObject.GObject):
     if not action:
       return
 
+    if action.is_activated():
+      if action.device.valid:
+        return
+
     device = None
     for d in self.devices:
       if d.get_udn() == action.device_udn:
@@ -150,7 +154,8 @@ class UPnPDeviceManager(GObject.GObject):
 
     device.is_source = False
     device.is_renderer = False
-
+    device.valid = True
+    
     if self.is_source(device):
       self.sources.append(device)
       device.is_source = True
@@ -165,6 +170,9 @@ class UPnPDeviceManager(GObject.GObject):
     for d in self.devices:
       if d.get_udn() == device.get_udn():
         self.devices.remove(d)
+
+        # Ensure that nobody uses the old reference
+        d.valid = False
 
     for d in self.sources:
       if d.get_udn() == device.get_udn():
