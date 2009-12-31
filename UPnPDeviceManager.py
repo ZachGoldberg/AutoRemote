@@ -71,7 +71,7 @@ class UPnPDeviceManager(GObject.GObject):
       
       super(UPnPDeviceManager, self).__init__()
       GObject.threads_init()
-        
+
       GObject.signal_new("device-available", UPnPDeviceManager, 
                          GObject.SIGNAL_RUN_LAST, 
                          GObject.TYPE_BOOLEAN, (GObject.TYPE_PYOBJECT,))
@@ -173,6 +173,8 @@ class UPnPDeviceManager(GObject.GObject):
     for d in self.renderers:
       if d.get_udn() == device.get_udn():
         self.renderers.remove(d)
+
+    self.device_services[d.get_udn()] = []
 
     self.emit("device-unavailable", device)
 

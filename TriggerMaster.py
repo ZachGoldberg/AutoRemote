@@ -25,8 +25,9 @@ class TriggerMaster(object):
    def run_triggers(self, world):
       
       for trigger in self.triggers:
-         if not trigger.action.is_activated():
-            self.device_mgr.activate_action(trigger.action)
+         # Need to re-activate it on each attempted trigger as the devices the
+         # trigger references may have dropped off the network etc.
+         self.device_mgr.activate_action(trigger.action)
             
          if trigger.is_triggered(world):
             trigger.execute_action()

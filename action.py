@@ -25,12 +25,20 @@ class UPnPAction(object):
     def activate(self, device, service):
         self.device = device
         self.service = service
-        print self.device, self.service, "ACTIVATE"
+        if self.is_activated():
+            print "ACTIVATED"
+        else:
+            print "INACTIVATED"
+
+        print self.device, self.service, 
 
     def execute(self):
         if self.is_executable():
             print "Send action"
-            self.service.send_action_hash(str(self.action), self.data, {})
+            try:
+                self.service.send_action_hash(str(self.action), self.data, {})
+            except:
+                print "Error sending action"
             print "Send action done"
         else:
             print "Error -- Tried to execute an action that hasn't been activated"

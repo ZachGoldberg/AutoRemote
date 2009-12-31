@@ -1,3 +1,4 @@
+import physics 
 class WorldState(object):
   """
    A struct which contains information about the world at one given time
@@ -28,7 +29,13 @@ class WorldData(object):
     A struct which contains information about the world over time
   """
   def __init__(self):
-      self.timesteps = []
+      self.timesteps = []      
+
+  def advance_time(self):
+      thepresent = WorldState()
+      for law in physics.known_physics_laws:
+        law.run(thepresent, self)
+      self.add_timestep(thepresent)
       
   def add_timestep(self, worldstate):
       self.timesteps.append(worldstate)

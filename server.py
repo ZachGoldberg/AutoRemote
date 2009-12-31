@@ -19,38 +19,28 @@ class AutoRemote(object):
 
     self.device_mgr = UPnPDeviceManager()
     self.device_mgr.connect("device-available", self.device_available)
-    self.device_mgr.connect("device-unavailable", self.device_available)
-    self.wifiloc = WifiLoc()
+    self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
     self.world = WorldData()
     self.triggermaster = TriggerMaster(simplejson.load(open('triggers.json')), self.device_mgr)
     
-    GObject.timeout_add(5000, self.check_triggers)
+    GObject.timeout_add(5000, self.process_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
     import gtk
     gtk.main()
 
-  def get_world_state(self):
-    worldState = WorldState()
-
-    self.wifiloc.update_location()
-    worldState.set_wifi_location(self.wifiloc.getCurrentAP())
-    worldState.set_time(datetime.now())
-
-    return worldState
-
-  def check_triggers(self):
-    self.world.add_timestep(self.get_world_state())
+  def process_triggers(self):
+    self.world.advance_time()
     self.triggermaster.run_triggers(self.world)
-
     return True
     
 
   def device_available(self, manager, device):
-    pass
+    print "Device available", device.get_friendly_name()
+    
   def device_unavailable(self, manager, device):
-    pass
+    print "Device unavailable", device.get_friendly_name()
 
 
   def stop_object(self, source, renderer, item):
