@@ -1,5 +1,5 @@
 import triggers
-from action import UPnPAction
+from util.action import UPnPAction
 
 class TriggerMaster(object):
    def __init__(self, triggerdata, device_mgr):

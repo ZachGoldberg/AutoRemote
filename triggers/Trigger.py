@@ -1,4 +1,4 @@
-from action import UPnPAction
+from util.action import UPnPAction
 import simplejson, triggers
 
 class Trigger(object):

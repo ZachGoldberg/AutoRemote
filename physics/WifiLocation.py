@@ -1,6 +1,6 @@
 from PhysicsLaw import PhysicsLaw
 import physics
-from wifiloc import WifiLoc
+from util.wifiloc import WifiLoc
 
 class WifiLocationPhysics(PhysicsLaw):
     """ The Physics of Changing Wifi Locations! """

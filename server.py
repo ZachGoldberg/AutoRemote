@@ -3,10 +3,10 @@ import pdb
 import pygtk, gtk, simplejson
 
 from datetime import datetime
-from action import UPnPAction
-from UPnPDeviceManager import UPnPDeviceManager
-from TriggerMaster import TriggerMaster
-from WorldData import WorldData, WorldState
+from util.action import UPnPAction
+from controllers.UPnPDeviceManager import UPnPDeviceManager
+from controllers.TriggerMaster import TriggerMaster
+from controllers.WorldData import WorldData, WorldState
 
 class AutoRemoteServer(object):
   def __init__(self, triggers):
