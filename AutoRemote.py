@@ -3,7 +3,7 @@ import pdb
 import pygtk, gtk, simplejson
 
 from datetime import datetime
-from util.gui import PyGUPnPCPUI
+from util.gui import AutoRemoteUI
 from util.wifiloc import WifiLoc
 from util.action import UPnPAction
 from controllers.UPnPDeviceManager import UPnPDeviceManager
@@ -21,20 +21,12 @@ class AutoRemote(object):
     self.device_mgr.connect("device-available", self.device_available)
     self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
-    self.world = WorldData()
-    self.triggermaster = TriggerMaster(simplejson.load(open('triggers.json')), self.device_mgr)
-    
-    GObject.timeout_add(5000, self.process_triggers)
-    GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
+
+    self.ui = AutoRemoteUI(self.device_mgr)
 
     import gtk
     gtk.main()
 
-  def process_triggers(self):
-    self.world.advance_time()
-    self.triggermaster.run_triggers(self.world)
-    return True
-    
 
   def device_available(self, manager, device):
     print "Device available", device.get_friendly_name()
