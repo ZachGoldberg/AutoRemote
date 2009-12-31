@@ -18,17 +18,13 @@ class TriggerMaster(object):
       for i in triggerdata:
          trigger = triggers.Trigger.Trigger.loads(i)
          loaded_triggers.append(trigger)
-         self.device_mgr.activate_action(trigger.action)
+         trigger.action.register_device_manager(self.device_mgr)
          
       return loaded_triggers
 
    def run_triggers(self, world):
       
-      for trigger in self.triggers:
-         # Need to re-activate it on each attempted trigger as the devices the
-         # trigger references may have dropped off the network etc.
-         self.device_mgr.activate_action(trigger.action)
-            
+      for trigger in self.triggers:            
          if trigger.is_triggered(world):            
             trigger.execute_action()
             if not trigger.reusable:

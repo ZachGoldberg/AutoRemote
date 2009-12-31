@@ -22,6 +22,10 @@ class UPnPAction(object):
 
         self.next_action = next_action
 
+    
+    def register_device_manager(self, device_mgr):
+        self.device_mgr = device_mgr
+        
     def activate(self, device, service):
         self.device = device
         self.service = service
@@ -40,11 +44,18 @@ class UPnPAction(object):
             print "Send action done"
         else:
             print "Error -- Tried to execute an action that hasn't been activated"
-            
-    def is_executable(self):
-        return bool(self.service)
 
-    is_activated = is_executable
+
+    def is_activated(self):
+        return bool(self.service)
+    
+    def is_executable(self):
+        if not self.device_mgr:
+            print "Error - You must register a device manager with this action before you can execute it"
+            
+        self.device_mgr.activate_action(self)
+        return self.is_activated()
+
     
     def dumps(self):
         next_action = None
