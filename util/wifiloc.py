@@ -21,6 +21,9 @@ class WifiLoc(object):
     try:
       for i in self.wifis:
         networks.extend(i.scan())
+    except:
+      IOCapture.stopCapture()
+      print "Error during scanning, perhaps you don't have permission?"
     finally:
       IOCapture.stopCapture()
 
