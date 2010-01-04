@@ -4,6 +4,8 @@ import pygtk
 pygtk.require('2.0')
 import gtk, gobject
 
+from controllers.TriggerMaster import TriggerMaster
+
 
 class AutoRemoteUI(object):
     def delete_event(self, widget, event, data=None):
@@ -70,6 +72,39 @@ class AutoRemoteUI(object):
         return
 
 
+    def new_trigger_page(self, button):
+        self.summary_window.hide()
+        
+        trigger_types = TriggerMaster.getTriggerTypes()
+        print trigger_types
+
+        liststore = gtk.ListStore(str, object)
+        self.trigger_list = gtk.ComboBox(liststore)
+        cellpb = gtk.CellRendererPixbuf()
+	cell = gtk.CellRendererText()
+        self.trigger_list.pack_start(cellpb, False)
+        self.trigger_list.pack_start(cell, True)
+
+	self.trigger_list.add_attribute(cell, 'text', 0)
+
+        for trigger_type in TriggerMaster.getTriggerTypes():
+            self.trigger_list.get_model().append([trigger_type.__name__, trigger_type])
+
+        self.trigger_list.set_active(0)
+        #        self.trigger_list.connect("changed", self.source_changed)
+        
+
+        self.trigger_list.show()
+        self.form = gtk.VBox()
+        self.form.pack_start(self.trigger_list)
+        self.form.show()
+        
+        for i in self.window.get_children():
+            self.window.remove(i)
+
+        self.window.add(self.form)
+
+
     def build_gtk_window_choser(self):
         if hasattr(self, "window_choser"):
             return self.window_choser
@@ -79,6 +114,8 @@ class AutoRemoteUI(object):
         self.summary_button = gtk.Button("Summary")
         self.new_trigger_button = gtk.Button("New Trigger")
         self.new_action_button  = gtk.Button("New Action")
+
+        self.new_trigger_button.connect("clicked", self.new_trigger_page)
 
         self.window_choser.pack_start(self.summary_button)
         self.window_choser.pack_start(self.new_trigger_button)
@@ -94,14 +131,33 @@ class AutoRemoteUI(object):
         return self.window_choser
             
 
-    def build_gtk_summary_window(self):
-        #----- GTK Version (includes buttons and a GTKTreeView
-        self.summary_box = gtk.VBox() 
-        self.window_list = self.build_gtk_window_choser()
-        self.summary_box.add(self.window_list)
-        self.summary_box.show()
+    def build_trigger_action_view(self):
+        tree_model = gtk.ListStore(str)
+        self.trigger_action_view = gtk.TreeView(tree_model)
+        
+        col = gtk.TreeViewColumn("Triggers/Actions")
+        col.cell = gtk.CellRendererText()
+        col.pack_start(col.cell)
+        col.set_attributes(col.cell, text=0)
+        self.trigger_action_view.append_column(col)
+        #self.trigger_action_view.connect("row-activated", self.enqueue_or_dive)
 
-        return self.summary_box
+        self.trigger_action_view.show()
+        return self.trigger_action_view
+
+    def build_gtk_summary_window(self):
+        #----- GTK Version (includes buttons and a GTKTreeView)
+        self.summary_window = gtk.VBox() 
+        self.window_list = self.build_gtk_window_choser()
+        
+
+        self.item_list = self.build_trigger_action_view()
+
+        self.summary_window.pack_start(self.window_list, False)
+        self.summary_window.add(self.item_list)
+        self.summary_window.show()        
+
+        return self.summary_window
 
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
