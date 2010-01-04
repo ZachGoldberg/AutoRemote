@@ -70,15 +70,46 @@ class AutoRemoteUI(object):
         return
 
 
+    def build_gtk_window_choser(self):
+        if hasattr(self, "window_choser"):
+            return self.window_choser
+        
+        self.window_choser = gtk.HBox()
+        
+        self.summary_button = gtk.Button("Summary")
+        self.new_trigger_button = gtk.Button("New Trigger")
+        self.new_action_button  = gtk.Button("New Action")
+
+        self.window_choser.pack_start(self.summary_button)
+        self.window_choser.pack_start(self.new_trigger_button)
+        self.window_choser.pack_start(self.new_action_button)
+
+
+        self.summary_button.show()
+        self.new_trigger_button.show()
+        self.new_action_button.show()
+
+        self.window_choser.show()
+
+        return self.window_choser
+            
+
+    def build_gtk_summary_window(self):
+        #----- GTK Version (includes buttons and a GTKTreeView
+        self.summary_box = gtk.VBox() 
+        self.window_list = self.build_gtk_window_choser()
+        self.summary_box.add(self.window_list)
+        self.summary_box.show()
+
+        return self.summary_box
+
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
 
-        self.playing_item = None
         self.sources = []
         self.icons = {}
         self.renderers = []
         self.items = []
-        self.source_device = None
         self.stack = []
         
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -86,7 +117,8 @@ class AutoRemoteUI(object):
         self.window.connect("destroy", self.destroy)
         self.window.set_border_width(10)
         self.window.set_default_size(800,480)
-
+        self.window.add(self.build_gtk_summary_window())
+        self.window.show()
 
     def main(self):
         gtk.main()

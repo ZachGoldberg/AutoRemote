@@ -24,9 +24,7 @@ class AutoRemote(object):
 
     self.ui = AutoRemoteUI(self.device_mgr)
 
-    import gtk
-    gtk.main()
-
+    self.ui.main()
 
   def device_available(self, manager, device):
     print "Device available", device.get_friendly_name()
