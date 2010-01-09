@@ -20,7 +20,7 @@ class AutoRemoteUI(object):
     def add_trigger(self, trigger):
         print trigger
         self.item_list.get_model().append([trigger.name])
-
+ 
     def make_pb(self, col, cell, model, iter):
         stock = model.get_value(iter, 1)
 	if not stock:
@@ -45,24 +45,32 @@ class AutoRemoteUI(object):
         print trigger_types
 
         liststore = gtk.ListStore(str, object)
-        self.trigger_list = gtk.ComboBox(liststore)
+        trigger_list = gtk.ComboBox(liststore)
         cellpb = gtk.CellRendererPixbuf()
 	cell = gtk.CellRendererText()
-        self.trigger_list.pack_start(cellpb, False)
-        self.trigger_list.pack_start(cell, True)
+        trigger_list.pack_start(cellpb, False)
+        trigger_list.pack_start(cell, True)
 
-	self.trigger_list.add_attribute(cell, 'text', 0)
+	trigger_list.add_attribute(cell, 'text', 0)
 
         for trigger_type in TriggerMaster.getTriggerTypes():
-            self.trigger_list.get_model().append([trigger_type.__name__, trigger_type])
+            trigger_list.get_model().append([trigger_type.__name__, trigger_type])
 
-        self.trigger_list.set_active(0)
+        trigger_list.set_active(0)
         #        self.trigger_list.connect("changed", self.source_changed)
         
-
-        self.trigger_list.show()
-        self.form = gtk.VBox()
-        self.form.pack_start(self.trigger_list)
+        trigger_type = gtk.Label("Trigger Type:")
+        trigger_type.show()
+        trigger_list.show()
+        self.form = gtk.HBox()
+        self.labels = gtk.VBox()
+        self.inputs = gtk.VBox()
+        self.labels.pack_start(trigger_type, False)
+        self.inputs.pack_start(trigger_list, False)
+        self.form.pack_start(self.labels)
+        self.form.pack_start(self.inputs)
+        self.labels.show()
+        self.inputs.show()
         self.form.show()
         
         for i in self.window.get_children():
