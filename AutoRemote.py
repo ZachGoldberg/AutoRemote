@@ -24,7 +24,19 @@ class AutoRemote(object):
 
     self.ui = AutoRemoteUI(self.device_mgr)
 
+    self.load_data("triggers.json")
+
     self.ui.main()
+
+
+
+  def load_data(self, data_file):
+    triggerdata = simplejson.load(open(data_file))
+    self.triggermaster = TriggerMaster(triggerdata, self.device_mgr)
+
+    for trigger in self.triggermaster.triggers:
+      self.ui.add_trigger(trigger)
+      print trigger
 
   def device_available(self, manager, device):
     print "Device available", device.get_friendly_name()

@@ -9,6 +9,8 @@ class TimeChanged (Trigger):
    """
    def __init__(self, triggerdata):
       super(TimeChanged, self).__init__(triggerdata)      
+      self.name = "Time based Trigger"
+
       self.checkpoint_time = datetime.now()
       if not hasattr(self, "time_delta"):
          self.time_delta = -1

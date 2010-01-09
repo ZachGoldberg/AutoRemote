@@ -16,44 +16,10 @@ class AutoRemoteUI(object):
         print "destroy signal occurred"
         gtk.main_quit()
 
-    def add_renderer(self, device, icon_file):
-        self.icons[device.get_udn()] = icon_file
-        self.renderer_list.get_model().append([device.get_model_name(), gtk.STOCK_OPEN, device])
-        self.renderers.append(device)
-        if len(self.renderers) == 1:
-            self.renderer_list.set_active(1)
 
-    def add_source(self, device, icon_file):
-        self.icons[device.get_udn()] = icon_file
-        self.source_list.get_model().append([device.get_friendly_name(), gtk.STOCK_OPEN, device])
-        
-        self.sources.append(device)
-        if len(self.sources) == 1:
-            self.source_list.set_active(1)
-    
-    def remove_renderer(self, device):
-        self.remove_device(device, self.renderers, self.renderer_device, self.renderer_list)
-        
-    def remove_source(self, device):
-        self.remove_device(device, self.sources, self.source_device, self.source_list)
-      
-
-    def remove_device(self, device, cache_list, cache_item, ui_list):
-        for d in cache_list:
-            if d.get_udn() == device.get_udn():
-                cache_list.remove(d)
-                if d.get_udn() == cache_item.get_udn():
-                    if len(cache_list) > 1:
-                        ui_list.set_active(1)
-                    else:
-                        ui_list.set_active(0)
-
-        model = ui_list.get_model()
-        iter =  model.get_iter(0)
-        while iter and model.iter_is_valid(iter):
-            iter = model.iter_next(iter)
-            if iter and model.get_value(iter, 2).get_udn() == device.get_udn():
-                model.remove(iter)
+    def add_trigger(self, trigger):
+        print trigger
+        self.item_list.get_model().append([trigger.name])
 
     def make_pb(self, col, cell, model, iter):
         stock = model.get_value(iter, 1)
@@ -113,18 +79,15 @@ class AutoRemoteUI(object):
         
         self.summary_button = gtk.Button("Summary")
         self.new_trigger_button = gtk.Button("New Trigger")
-        self.new_action_button  = gtk.Button("New Action")
 
         self.new_trigger_button.connect("clicked", self.new_trigger_page)
 
         self.window_choser.pack_start(self.summary_button)
         self.window_choser.pack_start(self.new_trigger_button)
-        self.window_choser.pack_start(self.new_action_button)
 
 
         self.summary_button.show()
         self.new_trigger_button.show()
-        self.new_action_button.show()
 
         self.window_choser.show()
 
@@ -135,7 +98,7 @@ class AutoRemoteUI(object):
         tree_model = gtk.ListStore(str)
         self.trigger_action_view = gtk.TreeView(tree_model)
         
-        col = gtk.TreeViewColumn("Triggers/Actions")
+        col = gtk.TreeViewColumn("Triggers")
         col.cell = gtk.CellRendererText()
         col.pack_start(col.cell)
         col.set_attributes(col.cell, text=0)

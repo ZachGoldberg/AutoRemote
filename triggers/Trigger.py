@@ -3,6 +3,7 @@ import simplejson, triggers
 
 class Trigger(object):
    def __init__(self, triggerdata):
+      self.name = "Basic Trigger"
       for key, value in triggerdata.items():
           setattr(self, key, value)
 
