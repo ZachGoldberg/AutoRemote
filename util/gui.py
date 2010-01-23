@@ -5,7 +5,7 @@ pygtk.require('2.0')
 import gtk, gobject
 
 from controllers.TriggerMaster import TriggerMaster
-
+from util import inputs as inpututils
 
 class AutoRemoteUI(object):
     def delete_event(self, widget, event, data=None):
@@ -37,6 +37,8 @@ class AutoRemoteUI(object):
         cell.set_property('pixbuf', pb)
         return
 
+    def source_changed(self, data):
+        pass
 
     def new_trigger_page(self, button):
         self.summary_window.hide()
@@ -52,31 +54,40 @@ class AutoRemoteUI(object):
         trigger_list.pack_start(cell, True)
 
 	trigger_list.add_attribute(cell, 'text', 0)
-
+        trigger_list.get_model().append(["Select a Trigger Type", None])
         for trigger_type in TriggerMaster.getTriggerTypes():
             trigger_list.get_model().append([trigger_type.__name__, trigger_type])
 
         trigger_list.set_active(0)
-        #        self.trigger_list.connect("changed", self.source_changed)
+        trigger_list.connect("changed", self.source_changed)
         
         trigger_type = gtk.Label("Trigger Type:")
         trigger_type.show()
         trigger_list.show()
-        self.form = gtk.HBox()
-        self.labels = gtk.VBox()
-        self.inputs = gtk.VBox()
-        self.labels.pack_start(trigger_type, False)
-        self.inputs.pack_start(trigger_list, False)
-        self.form.pack_start(self.labels)
-        self.form.pack_start(self.inputs)
-        self.labels.show()
-        self.inputs.show()
-        self.form.show()
+        form = gtk.Table(rows=10, columns=2)
+        
+        form.attach(trigger_type, 0, 1, 0, 1)
+        form.attach(trigger_list, 1, 2, 0, 1)
+
+        form.show()
+
+
+        t = inpututils.Selection("Selection", ["Foo", "Bar"])
+        inputs = [t]
+        cur_row = 1
+        for input in inputs:
+            (label, input) = t.draw()
+            form.attach(label, 0, 1, cur_row, cur_row + 1)
+            form.attach(input, 1, 2, cur_row, cur_row + 1)
+            cur_row += 1
+ #       labels.pack_start(label, False)
+#        inputs.pack_start(input, False)
+        
         
         for i in self.window.get_children():
             self.window.remove(i)
 
-        self.window.add(self.form)
+        self.window.add(form)
 
 
     def build_gtk_window_choser(self):
