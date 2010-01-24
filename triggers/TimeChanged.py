@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from Trigger import Trigger
 import triggers
 
+from util import inputs
+
 class TimeChanged (Trigger):
    """
    A trigger which can fire when a certain amount of Time or a specific Time passes
@@ -17,7 +19,7 @@ class TimeChanged (Trigger):
          
       if not hasattr(self, "cycle_trigger"):
          self.cycle_trigger = False
-
+   
    def is_triggered(self, worlddata):
       if not self.active:
          return False
@@ -29,5 +31,15 @@ class TimeChanged (Trigger):
          return True
        
       return False
+   
+   @classmethod
+   def get_editable_fields(clz):
+      return [inputs.Selection("Time Type", ["Specific Time",
+                                             "Elapsed TIme"]),
+              inputs.Entry("Specific Time: (%HH/%MM format)"
+                           "or interval time (in seconds) ")
+              
+              ]
+   
 
 triggers.register_trigger(TimeChanged)

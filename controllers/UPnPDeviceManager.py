@@ -126,12 +126,9 @@ class UPnPDeviceManager(GObject.GObject):
   def device_available(self, cp, device):
     for d in self.devices:
 	if d.get_udn() == device.get_udn():
-          # We can only assume that the old one dropped off the network
-          # and didn't tell us about it.  So manually remove it then proceed
-          # to readd.
-          print "Duplicate device online?  Removing old entry"
-	  self.device_unavailable(cp, d)
-
+          print "Duplicate device online?  Ignoring new entity."
+          return
+         
     self.devices.append(device)
   
     (icon_url, _, _, _, _) = device.get_icon_url(None, 32, 22, 22, False)
@@ -167,10 +164,11 @@ class UPnPDeviceManager(GObject.GObject):
     self.emit("device-available", device)
 
   def device_unavailable(self, cp, device):
+    original = None
     for d in self.devices:
       if d.get_udn() == device.get_udn():
         self.devices.remove(d)
-
+        original = d
         # Ensure that nobody uses the old reference
         d.valid = False
 
@@ -184,7 +182,7 @@ class UPnPDeviceManager(GObject.GObject):
 
     self.device_services[d.get_udn()] = []
 
-    self.emit("device-unavailable", device)
+    self.emit("device-unavailable", d)
 
   def server_introspection(self, service, introspection, error, userdata):
     self.introspections[service.get_udn()] = introspection

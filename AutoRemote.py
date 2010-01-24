@@ -39,11 +39,14 @@ class AutoRemote(object):
       print trigger
 
   def device_available(self, manager, device):
-    print "Device available", device.get_friendly_name()
+    print "Device available", device.get_friendly_name(), device.get_udn()
+    if device.is_renderer:
+      self.ui.add_renderer(device)
     
   def device_unavailable(self, manager, device):
     print "Device unavailable", device.get_friendly_name()
-
+    if device.is_renderer:
+      self.ui.remove_renderer(device)
 
   def stop_object(self, source, renderer, item):
     av_serv = self.get_av_for_renderer(renderer)

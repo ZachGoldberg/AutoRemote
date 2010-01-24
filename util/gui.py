@@ -16,7 +16,31 @@ class AutoRemoteUI(object):
         print "destroy signal occurred"
         gtk.main_quit()
 
+    def add_renderer(self, device):
+        for rlist in self.render_lists:
+            rlist.get_model().append([device.get_friendly_name(), device])
+            count = rlist.get_model().iter_n_children(None)
+            if count == 1:
+                rlist.set_active(0)
 
+    def remove_renderer(self, device):
+        for rlist in self.render_lists:
+            model = rlist.get_model()            
+            count = rlist.get_model().iter_n_children(None)
+            iterv = model.get_iter_first()
+            for i in range(0, count):
+                if model.get_value(iterv, 1).get_udn() == device.get_udn():
+
+                    # If we're removing the active element then reset active to 0th element
+                    if str(rlist.get_active()) == model.get_string_from_iter(iterv):
+                        rlist.set_active(0)
+                        
+                    model.remove(iterv)                    
+                    break
+                
+                iterv = model.iter_next(iterv)
+                
+            
     def add_trigger(self, trigger):
         print trigger
         self.item_list.get_model().append([trigger.name])
@@ -37,15 +61,43 @@ class AutoRemoteUI(object):
         cell.set_property('pixbuf', pb)
         return
 
-    def source_changed(self, data):
-        pass
+    def source_changed(self, box):
+        print box
+        trigger_class = box.get_model().get_value(box.get_active_iter(), 1)
+        inputs = [inpututils.Entry("Name")]
+        inputs.extend(trigger_class.get_editable_fields())
+                                        
+        cur_row = 1
+        for input in inputs:
+            (label, input) = input.draw()
+            self.trigger_form.attach(label, 0, 1, cur_row, cur_row + 1)
+            self.trigger_form.attach(input, 1, 2, cur_row, cur_row + 1)
+            cur_row += 1
 
-    def new_trigger_page(self, button):
+
+    def add_action(self, button):
+        print "Add Action"
+        renderers = [(n.get_friendly_name(), n) for n in self.upnp.renderers]
+        action_inputs = [
+            inpututils.Entry("Name"),        
+            inpututils.Selection("Target Renderer", renderers, False),
+            ]
+
+        self.render_lists.append(action_inputs[1].draw()[1])
+
+        cur_row = self.action_form.get_property("n_rows")
+        for input in action_inputs:
+            (label, input) = input.draw()
+            print label
+            self.action_form.attach(label, 0, 1, cur_row, cur_row + 1)
+            self.action_form.attach(input, 1, 2, cur_row, cur_row + 1)
+            cur_row += 1
+
+        
+    def build_gtk_trigger_creation_window(self, button=None):
         self.summary_window.hide()
         
         trigger_types = TriggerMaster.getTriggerTypes()
-        print trigger_types
-
         liststore = gtk.ListStore(str, object)
         trigger_list = gtk.ComboBox(liststore)
         cellpb = gtk.CellRendererPixbuf()
@@ -64,30 +116,40 @@ class AutoRemoteUI(object):
         trigger_type = gtk.Label("Trigger Type:")
         trigger_type.show()
         trigger_list.show()
-        form = gtk.Table(rows=10, columns=2)
+        self.trigger_form = gtk.Table(rows=1, columns=2)    
+        self.trigger_form.attach(trigger_type, 0, 1, 0, 1)
+        self.trigger_form.attach(trigger_list, 1, 2, 0, 1)
+        self.trigger_form.show()
         
-        form.attach(trigger_type, 0, 1, 0, 1)
-        form.attach(trigger_list, 1, 2, 0, 1)
+        self.action_form = gtk.Table(rows=1, columns=2)
+        self.action_form.show()
 
-        form.show()
-
-
-        t = inpututils.Selection("Selection", ["Foo", "Bar"])
-        inputs = [t]
-        cur_row = 1
-        for input in inputs:
-            (label, input) = t.draw()
-            form.attach(label, 0, 1, cur_row, cur_row + 1)
-            form.attach(input, 1, 2, cur_row, cur_row + 1)
-            cur_row += 1
- #       labels.pack_start(label, False)
-#        inputs.pack_start(input, False)
-        
-        
         for i in self.window.get_children():
             self.window.remove(i)
 
-        self.window.add(form)
+
+        add_action = gtk.Button("Add Another Action")
+        add_action.show()
+
+        add_action.connect("clicked", self.add_action)
+        
+        submit = gtk.Button("Save")
+        submit.show()
+
+        buttons = gtk.HBox()
+        buttons.pack_start(add_action)
+        buttons.pack_start(submit)
+        buttons.show()
+        
+        form_holder = gtk.VBox()
+        form_holder.pack_start(self.trigger_form, False)
+        form_holder.pack_start(self.action_form, False)
+        form_holder.pack_end(buttons, False)
+        form_holder.show()
+
+        self.add_action(None)
+
+        self.window.add(form_holder)
 
 
     def build_gtk_window_choser(self):
@@ -99,7 +161,7 @@ class AutoRemoteUI(object):
         self.summary_button = gtk.Button("Summary")
         self.new_trigger_button = gtk.Button("New Trigger")
 
-        self.new_trigger_button.connect("clicked", self.new_trigger_page)
+        self.new_trigger_button.connect("clicked", self.build_gtk_trigger_creation_window)
 
         self.window_choser.pack_start(self.summary_button)
         self.window_choser.pack_start(self.new_trigger_button)
@@ -139,7 +201,14 @@ class AutoRemoteUI(object):
         self.summary_window.add(self.item_list)
         self.summary_window.show()        
 
-        return self.summary_window
+        self.window.add(self.summary_window)
+
+
+    def set_view(self, view):
+        if view == "new_trigger":
+            self.build_gtk_trigger_creation_window()
+        elif view == "summary":
+            self.build_gtk_summary_window()
 
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
@@ -149,13 +218,17 @@ class AutoRemoteUI(object):
         self.renderers = []
         self.items = []
         self.stack = []
+
+        self.render_lists = []
         
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
         self.window.set_border_width(10)
         self.window.set_default_size(800,480)
-        self.window.add(self.build_gtk_summary_window())
+
+        self.set_view("summary")
+        self.set_view("new_trigger")        
         self.window.show()
 
     def main(self):
