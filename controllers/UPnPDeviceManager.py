@@ -123,6 +123,22 @@ class UPnPDeviceManager(GObject.GObject):
     
       self.cps.append(cp)
 
+  def get_service_on_device(self, device, service_type):
+    services = []
+    try:
+      if isinstance(device, basestring):      
+        services = self.device_services[device]
+      else:
+        services = self.device_services[device.get_udn()]
+    except:
+      return None
+
+    for service in services:
+      if service.get_service_type() == service_type:
+        return service
+
+    return None
+
   def device_available(self, cp, device):
     for d in self.devices:
 	if d.get_udn() == device.get_udn():
