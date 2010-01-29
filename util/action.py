@@ -54,8 +54,10 @@ class UPnPAction(object):
             print "Error - You must register a device manager with this action before you can execute it"
             
         self.device_mgr.activate_action(self)
-        return self.is_activated()
-
+        if self.next_aciton:        
+            return self.is_activated() and self.next_action.is_executable()
+        else:
+            return self.is_activated()
     
     def dumps(self):
         next_action = None
