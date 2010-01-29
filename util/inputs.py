@@ -23,6 +23,9 @@ class Input(object):
     def draw_input(self):
         print "Called Super"
         raise "Unimplemented!"
+
+    def get_value(self):
+        raise "Unimplemented!"
     
 class Selection(Input):
     def __init__(self, label, options, string_only=True):
@@ -50,8 +53,22 @@ class Selection(Input):
 
         list_input.set_active(0)
         list_input.show()
+        self.list_input = list_input
         return list_input
 
+    def get_value(self):
+        iter = self.list_input.get_active_iter()
+        if not iter:
+            return None
+        
+        if self.string_only:
+            return self.list_input.get_model().get_value(iter, 0)
+        else:
+            return [
+                self.list_input.get_model().get_value(iter, 0),
+                self.list_input.get_model().get_value(iter, 1)
+                ]
+        
 class Entry(Input):
     def __init__(self, label):
         super(Entry, self).__init__(label)
@@ -61,3 +78,6 @@ class Entry(Input):
         self.entry = gtk.Entry()
         self.entry.show()
         return self.entry
+
+    def get_value(self):
+        return self.entry.get_text()

@@ -6,6 +6,7 @@ import gtk, gobject
 
 from controllers.TriggerMaster import TriggerMaster
 from util import inputs as inpututils
+from util.action import UPnPAction
 
 class AutoRemoteUI(object):
     def delete_event(self, widget, event, data=None):
@@ -61,13 +62,12 @@ class AutoRemoteUI(object):
         cell.set_property('pixbuf', pb)
         return
 
-    def source_changed(self, box):
+    def trigger_type_changed(self, box):
         print box
         trigger_class = box.get_model().get_value(box.get_active_iter(), 1)
-        inputs = [inpututils.Entry("Name")]
-        inputs.extend(trigger_class.get_editable_fields())
-                                        
-        cur_row = 1
+        inputs = trigger_class.get_editable_fields()
+        self.current_editables = inputs
+        cur_row = 2
         for input in inputs:
             (label, input) = input.draw()
             self.trigger_form.attach(label, 0, 1, cur_row, cur_row + 1)
@@ -75,15 +75,56 @@ class AutoRemoteUI(object):
             cur_row += 1
 
 
+    def save_trigger(self, button):
+        print "Save!"
+        trig_type = self.trigger_list.get_model().get_value(
+            self.trigger_list.get_active_iter(), 1)
+        if not trig_type:
+            return
+
+        trig_name = self.trigger_name.get_text()
+        print trig_type, trig_name
+        
+        for v in self.current_editables:
+            print v.get_value()
+
+        for a in self.actions:
+            for i in a:
+                print i.get_value()
+                
+        # First build a list of actions chained together,
+        # then build a trigger containing that action
+        action = None
+        last_action = None
+        for a in self.actions:
+            device = a[0].get_value()[1]
+            data = a[1].get_value()
+            service = self.upnp.get_service_on_device(device, "AVTransport")
+            act = UPnPAction(device, service, data, None)
+            if not action:
+                action = act
+                last_action = act
+            else:
+                last_action.next_action = act
+
+            last_action = act
+        
+        import pdb
+        pdb.set_trace()
+
+        self.set_view("summary")
+
     def add_action(self, button):
         print "Add Action"
         renderers = [(n.get_friendly_name(), n) for n in self.upnp.renderers]
+        renderer_actions = ["Stop", "Pause", "Play", "Next", "Prev"]
         action_inputs = [
-            inpututils.Entry("Name"),        
             inpututils.Selection("Target Renderer", renderers, False),
+            inpututils.Selection("Action", renderer_actions, True)
             ]
 
-        self.render_lists.append(action_inputs[1].draw()[1])
+        self.actions.append(action_inputs)
+        self.render_lists.append(action_inputs[0].draw()[1])
 
         cur_row = self.action_form.get_property("n_rows")
         for input in action_inputs:
@@ -97,6 +138,8 @@ class AutoRemoteUI(object):
     def build_gtk_trigger_creation_window(self, button=None):
         self.summary_window.hide()
         
+        self.actions = []
+
         trigger_types = TriggerMaster.getTriggerTypes()
         liststore = gtk.ListStore(str, object)
         trigger_list = gtk.ComboBox(liststore)
@@ -107,27 +150,38 @@ class AutoRemoteUI(object):
 
 	trigger_list.add_attribute(cell, 'text', 0)
         trigger_list.get_model().append(["Select a Trigger Type", None])
+        
         for trigger_type in TriggerMaster.getTriggerTypes():
             trigger_list.get_model().append([trigger_type.__name__, trigger_type])
 
         trigger_list.set_active(0)
-        trigger_list.connect("changed", self.source_changed)
+        trigger_list.connect("changed", self.trigger_type_changed)
         
         trigger_type = gtk.Label("Trigger Type:")
         trigger_type.show()
         trigger_list.show()
+
+        self.trigger_list = trigger_list
+        
         self.trigger_form = gtk.Table(rows=1, columns=2)    
         self.trigger_form.attach(trigger_type, 0, 1, 0, 1)
         self.trigger_form.attach(trigger_list, 1, 2, 0, 1)
         self.trigger_form.show()
+
+
+
+        (label, input) = inpututils.Entry("Name").draw()
+        self.trigger_name = input
+        self.trigger_form.attach(label, 0, 1, 1, 2)
+        self.trigger_form.attach(input, 1, 2, 1, 2)
+
         
         self.action_form = gtk.Table(rows=1, columns=2)
         self.action_form.show()
 
         for i in self.window.get_children():
             self.window.remove(i)
-
-
+            
         add_action = gtk.Button("Add Another Action")
         add_action.show()
 
@@ -135,6 +189,7 @@ class AutoRemoteUI(object):
         
         submit = gtk.Button("Save")
         submit.show()
+        submit.connect("clicked", self.save_trigger)
 
         buttons = gtk.HBox()
         buttons.pack_start(add_action)
@@ -190,8 +245,8 @@ class AutoRemoteUI(object):
         return self.trigger_action_view
 
     def build_gtk_summary_window(self):
-        #----- GTK Version (includes buttons and a GTKTreeView)
-        self.summary_window = gtk.VBox() 
+        #----- GTK Version (includes buttons and a GTKTreeView)           
+        self.summary_window = gtk.VBox()
         self.window_list = self.build_gtk_window_choser()
         
 
@@ -205,6 +260,10 @@ class AutoRemoteUI(object):
 
 
     def set_view(self, view):
+        # Clear the window first
+        for c in self.window.get_children():
+            self.window.remove(c)
+
         if view == "new_trigger":
             self.build_gtk_trigger_creation_window()
         elif view == "summary":
@@ -233,7 +292,3 @@ class AutoRemoteUI(object):
 
     def main(self):
         gtk.main()
-
-if __name__ == "__main__":
-    hello = HelloWorld()
-    hello.main()

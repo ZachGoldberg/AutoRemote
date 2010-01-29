@@ -134,7 +134,7 @@ class UPnPDeviceManager(GObject.GObject):
       return None
 
     for service in services:
-      if service.get_service_type() == service_type:
+      if service_type in service.get_service_type():
         return service
 
     return None

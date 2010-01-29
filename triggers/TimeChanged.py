@@ -36,7 +36,7 @@ class TimeChanged (Trigger):
    def get_editable_fields(clz):
       return [inputs.Selection("Time Type", ["Specific Time",
                                              "Elapsed TIme"]),
-              inputs.Entry("Specific Time: (%HH/%MM format)"
+              inputs.Entry("Specific Time: (%HH/%MM format) "
                            "or interval time (in seconds) ")
               
               ]
