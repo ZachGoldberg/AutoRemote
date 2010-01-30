@@ -43,8 +43,7 @@ class AutoRemoteUI(object):
                 
             
     def add_trigger(self, trigger):
-        print trigger
-        self.item_list.get_model().append([trigger.name])
+        self.item_list.get_model().append([trigger.get_name()])
  
     def make_pb(self, col, cell, model, iter):
         stock = model.get_value(iter, 1)
@@ -108,10 +107,20 @@ class AutoRemoteUI(object):
                 last_action.next_action = act
 
             last_action = act
-        
-        import pdb
-        pdb.set_trace()
 
+        triggerdata = {}
+        for v in self.current_editables:
+            triggerdata[v.get_userdata()] = v.get_value()
+
+        triggerdata["upnpaction"] = action
+        triggerdata["trigger_class"] = trig_type.__name__
+        trigger = trig_type(triggerdata)
+        trigger.name = trig_name
+
+
+        self.remote.add_trigger(trigger)
+        self.add_trigger(trigger)
+        
         self.set_view("summary")
 
     def add_action(self, button):
@@ -119,8 +128,8 @@ class AutoRemoteUI(object):
         renderers = [(n.get_friendly_name(), n) for n in self.upnp.renderers]
         renderer_actions = ["Stop", "Pause", "Play", "Next", "Prev"]
         action_inputs = [
-            inpututils.Selection("Target Renderer", renderers, False),
-            inpututils.Selection("Action", renderer_actions, True)
+            inpututils.Selection("Target Renderer", renderers, string_only=False),
+            inpututils.Selection("Action", renderer_actions, string_only=True)
             ]
 
         self.actions.append(action_inputs)
@@ -136,8 +145,6 @@ class AutoRemoteUI(object):
 
         
     def build_gtk_trigger_creation_window(self, button=None):
-        self.summary_window.hide()
-        
         self.actions = []
 
         trigger_types = TriggerMaster.getTriggerTypes()
@@ -178,10 +185,7 @@ class AutoRemoteUI(object):
         
         self.action_form = gtk.Table(rows=1, columns=2)
         self.action_form.show()
-
-        for i in self.window.get_children():
-            self.window.remove(i)
-            
+           
         add_action = gtk.Button("Add Another Action")
         add_action.show()
 
@@ -204,30 +208,31 @@ class AutoRemoteUI(object):
 
         self.add_action(None)
 
-        self.window.add(form_holder)
+        return form_holder
 
 
     def build_gtk_window_choser(self):
-        if hasattr(self, "window_choser"):
-            return self.window_choser
+        window_choser = gtk.HBox()
         
-        self.window_choser = gtk.HBox()
-        
-        self.summary_button = gtk.Button("Summary")
-        self.new_trigger_button = gtk.Button("New Trigger")
+        summary_button = gtk.Button("Summary")
+        new_trigger_button = gtk.Button("New Trigger")
 
-        self.new_trigger_button.connect("clicked", self.build_gtk_trigger_creation_window)
+        summary_button.loc = "summary"
+        new_trigger_button.loc = "new_trigger"
 
-        self.window_choser.pack_start(self.summary_button)
-        self.window_choser.pack_start(self.new_trigger_button)
+        summary_button.connect("clicked", self.set_view_button)
+        new_trigger_button.connect("clicked", self.set_view_button)
+
+        window_choser.pack_start(summary_button)
+        window_choser.pack_start(new_trigger_button)
 
 
-        self.summary_button.show()
-        self.new_trigger_button.show()
+        summary_button.show()
+        new_trigger_button.show()
 
-        self.window_choser.show()
+        window_choser.show()
 
-        return self.window_choser
+        return window_choser
             
 
     def build_trigger_action_view(self):
@@ -242,32 +247,56 @@ class AutoRemoteUI(object):
         #self.trigger_action_view.connect("row-activated", self.enqueue_or_dive)
 
         self.trigger_action_view.show()
+
         return self.trigger_action_view
 
     def build_gtk_summary_window(self):
-        #----- GTK Version (includes buttons and a GTKTreeView)           
-        self.summary_window = gtk.VBox()
-        self.window_list = self.build_gtk_window_choser()
+        #----- GTK Version (includes buttons and a GTKTreeView)
+        if not hasattr(self, "item_list"):
+            print "Begin"
+            self.item_list = self.build_trigger_action_view()
+            print "End"
+
+        return self.item_list
+
+
+    def set_view_button(self, button):
+        self.set_view(button.loc)
         
-
-        self.item_list = self.build_trigger_action_view()
-
-        self.summary_window.pack_start(self.window_list, False)
-        self.summary_window.add(self.item_list)
-        self.summary_window.show()        
-
-        self.window.add(self.summary_window)
-
-
     def set_view(self, view):
+        if hasattr(self, "item_list"):
+            print self.item_list.get_model() , "MODEL1"
+
         # Clear the window first
         for c in self.window.get_children():
             self.window.remove(c)
 
+        if hasattr(self, "item_list"):
+            print self.item_list.get_model() , "MODEL2"
+
+        print "Set view %s" % view
+
+        if hasattr(self, "summary_window"):
+            for c in self.summary_window.get_children():
+                self.summary_window.remove(c)
+
+        self.summary_window = gtk.VBox()
+        self.window_list = self.build_gtk_window_choser()
+
+        self.trigger_view = self.build_gtk_trigger_creation_window()
+        self.summary_view = self.build_gtk_summary_window()
+        
         if view == "new_trigger":
-            self.build_gtk_trigger_creation_window()
-        elif view == "summary":
-            self.build_gtk_summary_window()
+            content = self.trigger_view    
+        if view == "summary":
+            content = self.summary_view
+
+        content.show()
+
+        self.summary_window.pack_start(self.window_list, False)
+        self.summary_window.add(content)
+        self.summary_window.show()        
+        self.window.add(self.summary_window)
 
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
@@ -287,7 +316,7 @@ class AutoRemoteUI(object):
         self.window.set_default_size(800,480)
 
         self.set_view("summary")
-        self.set_view("new_trigger")        
+#        self.set_view("new_trigger")        
         self.window.show()
 
     def main(self):

@@ -10,8 +10,11 @@ class TimeChanged (Trigger):
    A trigger which can fire when a certain amount of Time or a specific Time passes
    """
    def __init__(self, triggerdata):
-      super(TimeChanged, self).__init__(triggerdata)      
-      self.name = "Time based Trigger"
+      super(TimeChanged, self).__init__(triggerdata)
+      if not hasattr(self, "name") or not self.name:
+         self.name = "Time Based Trigger"
+      else:
+         self.name += " (Time)"
 
       self.checkpoint_time = datetime.now()
       if not hasattr(self, "time_delta"):
@@ -31,13 +34,19 @@ class TimeChanged (Trigger):
          return True
        
       return False
+
+   def dumps(self):
+      self.checkpoint_time = ""
+      return super(TimeChanged, self).dumps()
    
    @classmethod
    def get_editable_fields(clz):
       return [inputs.Selection("Time Type", ["Specific Time",
-                                             "Elapsed TIme"]),
+                                             "Elapsed TIme"],
+                               userdata="trigger_style"),
               inputs.Entry("Specific Time: (%HH/%MM format) "
-                           "or interval time (in seconds) ")
+                           "or interval time (in seconds) ",
+                           userdata="time_delta")
               
               ]
    

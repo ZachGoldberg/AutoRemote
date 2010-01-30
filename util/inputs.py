@@ -1,11 +1,16 @@
 import gtk
 
 class Input(object):
-    def __init__(self, label):
+    def __init__(self, label, userdata=None):
         self.label = label
         self.obj = None
         self.gtk_label = None
-        
+        self.userdata = userdata
+
+
+    def get_userdata(self):
+        return self.userdata
+    
     def getLabel(self):
         return self.label
 
@@ -28,8 +33,8 @@ class Input(object):
         raise "Unimplemented!"
     
 class Selection(Input):
-    def __init__(self, label, options, string_only=True):
-        super(Selection, self).__init__(label)
+    def __init__(self, label, options, userdata=None, string_only=True):
+        super(Selection, self).__init__(label, userdata)
         self.options = options
         self.string_only = string_only
 
@@ -70,8 +75,8 @@ class Selection(Input):
                 ]
         
 class Entry(Input):
-    def __init__(self, label):
-        super(Entry, self).__init__(label)
+    def __init__(self, label, userdata=None):
+        super(Entry, self).__init__(label, userdata)
 
 
     def draw_input(self):        

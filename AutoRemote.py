@@ -23,12 +23,22 @@ class AutoRemote(object):
 
 
     self.ui = AutoRemoteUI(self.device_mgr)
-
+    self.ui.remote = self
+    
     self.load_data("triggers.json")
 
     self.ui.main()
 
 
+
+  def add_trigger(self, trigger):
+    data_file = "triggers.json"
+    triggerdata = simplejson.load(open(data_file))
+    triggerdata.append(trigger.dumps())
+    f = open("triggers.json", "w")
+    f.write(simplejson.dumps(triggerdata))
+    f.close()
+           
 
   def load_data(self, data_file):
     triggerdata = simplejson.load(open(data_file))

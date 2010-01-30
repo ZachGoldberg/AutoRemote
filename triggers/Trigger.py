@@ -3,16 +3,25 @@ import simplejson, triggers
 
 class Trigger(object):
    def __init__(self, triggerdata):
-      self.name = "Basic Trigger"
       for key, value in triggerdata.items():
           setattr(self, key, value)
 
-      self.action = UPnPAction.loads(triggerdata["upnpaction"])
+      if isinstance(triggerdata["upnpaction"], basestring):
+         self.action = UPnPAction.loads(triggerdata["upnpaction"])
+      else:
+         self.action = triggerdata["upnpaction"]
+         self.upnpaction = self.action.dumps()
 
       if not hasattr(self, "reusable"):
          self.reusable = False
 
       self.active = True
+
+   def get_name(self):
+      if not hasattr(self, "name") or not self.name:
+         return "Basic Trigger"
+      else:
+         return self.name
 
    def is_triggered(self, world_data):
       return False
@@ -30,7 +39,7 @@ class Trigger(object):
       data = self.__dict__.copy()
       if "action" in data:
          del data["action"]
-      
+
       return simplejson.dumps(data)
 
    @classmethod
