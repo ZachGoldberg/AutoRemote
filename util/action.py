@@ -50,11 +50,11 @@ class UPnPAction(object):
         return bool(self.service)
     
     def is_executable(self):
-        if not self.device_mgr:
+        if not hasattr(self, "device_mgr") or not self.device_mgr:
             print "Error - You must register a device manager with this action before you can execute it"
             
         self.device_mgr.activate_action(self)
-        if self.next_aciton:        
+        if self.next_action:        
             return self.is_activated() and self.next_action.is_executable()
         else:
             return self.is_activated()
