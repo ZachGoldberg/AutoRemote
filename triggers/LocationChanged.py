@@ -1,4 +1,5 @@
 from Trigger import Trigger
+from util import inputs
 import triggers
 
 class LocationChanged (Trigger):
@@ -14,5 +15,11 @@ class LocationChanged (Trigger):
            if worlddata.now().wifi_location.bssid == self.trigger_bssid:
                return True
        return False
+
+   @classmethod
+   def get_editable_fields(clz):      
+      return [inputs.Entry("Trigger when changing to (BSSID):",
+                           userdata="trigger_bssid"),
+              ]
 
 triggers.register_trigger(LocationChanged)

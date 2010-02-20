@@ -47,7 +47,6 @@ class TimeChanged (Trigger):
               inputs.Entry("Specific Time: (%HH/%MM format) "
                            "or interval time (in seconds) ",
                            userdata="time_delta")
-              
               ]
    
 
