@@ -233,7 +233,26 @@ class AutoRemoteUI(object):
         window_choser.show()
 
         return window_choser
-            
+
+                
+    def build_trigger_action_view(self):
+        """
+        Build a gtk treeview and underlying liststore for the
+        list of current triggers
+        """
+        tree_model = gtk.ListStore(str)
+        trigger_action_view = gtk.TreeView(tree_model)
+        
+        col = gtk.TreeViewColumn("Triggers")
+        col.cell = gtk.CellRendererText()
+        col.pack_start(col.cell)
+        col.set_attributes(col.cell, text=0)
+        trigger_action_view.append_column(col)
+        
+        trigger_action_view.show()
+        
+        return trigger_action_view                
+                                                                  
 
     def build_summary_window(self):
         if not hasattr(self, "item_list"):
@@ -274,7 +293,9 @@ class AutoRemoteUI(object):
 
         content.show()
 
-        self.summary_window.pack_start(self.window_list, False)
+        if self.window_list:
+            self.summary_window.pack_start(self.window_list, False)
+            
         self.summary_window.add(content)
         self.summary_window.show()        
         self.window.add(self.summary_window)
