@@ -3,7 +3,6 @@ import pdb
 import pygtk, gtk, simplejson, sys
 
 from datetime import datetime
-from util.wifiloc import WifiLoc
 from util.action import UPnPAction
 from controllers.UPnPDeviceManager import UPnPDeviceManager
 from controllers.TriggerMaster import TriggerMaster
@@ -21,18 +20,21 @@ class AutoRemote(object):
     self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
     try:
-      from util.hildonui import HildonAutoRemoteUI as AutoRemoteUI
+      from util.hildongui import HildonAutoRemoteGUI as AutoRemoteGUI
     except:
-      pass
+      import traceback
+      traceback.print_exc()
 
-    if not "AutoRemoteUI" in dir():
+    if not "AutoRemoteGUI" in dir():
       try:
-        from util.gtkui import GTKAutoRemoteUI as AutoRemoteUI
+        from util.gtkgui import GTKAutoRemoteGUI as AutoRemoteGUI
       except:
-        sys.stderr.write("Could not load either hildon or gtk frameworks.  Bailing out.")
+        import traceback
+        traceback.print_exc()
+        sys.stderr.write("Could not load either hildon or gtk frameworks.  Bailing out.\n")
         sys.exit(1)
       
-    self.ui = AutoRemoteUI(self.device_mgr)
+    self.ui = AutoRemoteGUI(self.device_mgr)
     self.ui.remote = self
     
     self.load_data("triggers.json")

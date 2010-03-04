@@ -8,16 +8,20 @@ from util import inputs as inpututils
 from util.action import UPnPAction
 from util.autoremotegui import AutoRemoteGUI
 
-class HildonAutoRemoteUI(AutoRemoteUI):
+class HildonAutoRemoteGUI(AutoRemoteGUI):
     
     def __init__(self, upnp_backend):
-        super(HildonAutoRemoteUI, self).__init__(upnp_backend)
+        super(HildonAutoRemoteGUI, self).__init__(upnp_backend)
         
         self.window = hildon.StackableWindow()
         self.window.set_border_width(10)
         self.window.set_default_size(800,480)
 
+        self.build_window_choser()
+
         self.set_view("summary")
+        self.window.add(self.build_trigger_action_view())
+        self.window.set_title("Auto Remote")
         self.window.show()
 
     def build_trigger_action_view(self):
@@ -26,24 +30,36 @@ class HildonAutoRemoteUI(AutoRemoteUI):
         already defined triggers in a HildonPannableView
         with a TreeView underneath        
         """
-        treeview = super(HildonAutoRemoteUI, self).build_trigger_action_view()
-
+        self.item_list = super(HildonAutoRemoteGUI, self).build_trigger_action_view()
         pannable = hildon.PannableArea()
-        pannable.pack_start(treeview)
+        pannable.add(self.item_list)
         pannable.show()
-        
+       
         return pannable
 
     def build_window_choser(self):
         """
         Add a list of option to the ui toolbar which chose what view to be in        
         """
-        pass
+
+        summary_button = hildon.Button(0, 0, "Trigger List")
+        summary_button.connect("clicked", lambda x, : self.set_view("summary"))
+
+        new_button = hildon.Button(0, 0, "New Trigger")
+        new_button.connect("clicked", lambda x, : self.set_view("new_trigger"))
+        
+        menu = hildon.AppMenu()
+        menu.append(summary_button)
+        menu.append(new_button)
+        menu.show_all()
+
+        self.window.set_app_menu(menu)
+        
 
 
     def build_trigger_creation_window(self):
         self.actions = []
-
+        
         trigger_types = TriggerMaster.getTriggerTypes()
         liststore = gtk.ListStore(str, object)
         trigger_list = gtk.ComboBox(liststore)
@@ -96,13 +112,21 @@ class HildonAutoRemoteUI(AutoRemoteUI):
         buttons.pack_start(add_action)
         buttons.pack_start(submit)
         buttons.show()
-        
-        form_holder = gtk.VBox()
-        form_holder.pack_start(self.trigger_form, False)
-        form_holder.pack_start(self.action_form, False)
-        form_holder.pack_end(buttons, False)
-        form_holder.show()
 
+        area = hildon.PannableArea()
+        area.add_with_viewport(self.action_form)
+        area.show()        
+
+        self.vbox = gtk.VBox()
+        self.vbox.pack_start(self.trigger_form, False)
+        self.vbox.pack_start(area)
+        self.vbox.pack_end(buttons, False)
+        self.vbox.show()
+
+        form_holder = hildon.StackableWindow()
+        form_holder.add(self.vbox)
+        form_holder.show()
+        
         self.add_action(None)
 
         return form_holder
@@ -113,12 +137,17 @@ class HildonAutoRemoteUI(AutoRemoteUI):
         Set the current window to be the chosen window ''view''
         """
         
-        print "Set view %s" % view
-        
+        print "Hildon Set view %s" % view
+
+        stack = hildon.WindowStack.get_default()
+
         if view == "summary":
-            self.window.show()
+            print self.window, self.window.get_title()            
+            self.window.show_all()
+            if stack.size() > 1:
+                stack.pop(1)
+            
         elif view == "new_trigger":
-            if not hasattr(self, "trigger_view"):
-                self.trigger_view = self.build_trigger_creation_window()
+            self.trigger_view = self.build_trigger_creation_window()
             self.trigger_view.show()
 

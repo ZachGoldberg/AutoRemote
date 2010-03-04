@@ -8,7 +8,7 @@ from controllers.TriggerMaster import TriggerMaster
 from util import inputs as inpututils
 from util.action import UPnPAction
 
-class AutoRemoteUI(object):
+class AutoRemoteGUI(object):
     def delete_event(self, widget, event, data=None):
         print "delete event occurred"
         return False
@@ -240,25 +240,22 @@ class AutoRemoteUI(object):
         Build a gtk treeview and underlying liststore for the
         list of current triggers
         """
-        tree_model = gtk.ListStore(str)
-        trigger_action_view = gtk.TreeView(tree_model)
         
         col = gtk.TreeViewColumn("Triggers")
         col.cell = gtk.CellRendererText()
         col.pack_start(col.cell)
         col.set_attributes(col.cell, text=0)
+
+        tree_model = gtk.ListStore(str)
+        trigger_action_view = gtk.TreeView(tree_model)
         trigger_action_view.append_column(col)
-        
         trigger_action_view.show()
-        
         return trigger_action_view                
                                                                   
 
     def build_summary_window(self):
         if not hasattr(self, "item_list"):
-            print "Begin"
             self.item_list = self.build_trigger_action_view()
-            print "End"
 
         return self.item_list
 
@@ -300,6 +297,9 @@ class AutoRemoteUI(object):
         self.summary_window.show()        
         self.window.add(self.summary_window)
 
+    def main(self):
+        gtk.main()
+
     def __init__(self, upnp_backend):
         self.upnp = upnp_backend
 
@@ -309,4 +309,3 @@ class AutoRemoteUI(object):
         self.items = []
         self.stack = []
         self.render_lists = []
-        

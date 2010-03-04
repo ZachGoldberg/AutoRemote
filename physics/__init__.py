@@ -3,5 +3,12 @@ known_physics_laws = []
 def learn_law(law):
     known_physics_laws.append(law())
 
-import Time
-import WifiLocation
+try:
+  import Time
+except:
+  print "Couldn't import Time Physics"
+
+try:
+  import WifiLocation
+except:
+  print "Couldn't import WifiLocation Physics"
