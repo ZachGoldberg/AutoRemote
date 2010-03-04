@@ -1,9 +1,8 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
 import pdb
-import pygtk, gtk, simplejson
+import pygtk, gtk, simplejson, sys
 
 from datetime import datetime
-from util.gui import AutoRemoteUI
 from util.wifiloc import WifiLoc
 from util.action import UPnPAction
 from controllers.UPnPDeviceManager import UPnPDeviceManager
@@ -21,7 +20,18 @@ class AutoRemote(object):
     self.device_mgr.connect("device-available", self.device_available)
     self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
+    try:
+      from util.hildonui import HildonAutoRemoteUI as AutoRemoteUI
+    except:
+      pass
 
+    if not "AutoRemoteUI" in dir():
+      try:
+        from util.gtkui import GTKAutoRemoteUI as AutoRemoteUI
+      except:
+        sys.stderr.write("Could not load either hildon or gtk frameworks.  Bailing out.")
+        sys.exit(1)
+      
     self.ui = AutoRemoteUI(self.device_mgr)
     self.ui.remote = self
     
