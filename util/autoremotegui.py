@@ -144,7 +144,7 @@ class AutoRemoteUI(object):
             cur_row += 1
 
         
-    def build_trigger_creation_window(self, button=None):
+    def build_gtk_trigger_creation_window(self, button=None):
         self.actions = []
 
         trigger_types = TriggerMaster.getTriggerTypes()
@@ -211,7 +211,7 @@ class AutoRemoteUI(object):
         return form_holder
 
 
-    def build_window_choser(self):
+    def build_gtk_window_choser(self):
         window_choser = gtk.HBox()
         
         summary_button = gtk.Button("Summary")
@@ -250,7 +250,7 @@ class AutoRemoteUI(object):
 
         return self.trigger_action_view
 
-    def build_summary_window(self):
+    def build_gtk_summary_window(self):
         #----- GTK Version (includes buttons and a GTKTreeView)
         if not hasattr(self, "item_list"):
             print "Begin"
@@ -281,10 +281,10 @@ class AutoRemoteUI(object):
                 self.summary_window.remove(c)
 
         self.summary_window = gtk.VBox()
-        self.window_list = self.build_window_choser()
+        self.window_list = self.build_gtk_window_choser()
 
-        self.trigger_view = self.build_trigger_creation_window()
-        self.summary_view = self.build_summary_window()
+        self.trigger_view = self.build_gtk_trigger_creation_window()
+        self.summary_view = self.build_gtk_summary_window()
         
         if view == "new_trigger":
             content = self.trigger_view    
