@@ -91,6 +91,7 @@ class AutoRemoteGUI(object):
 
 
     def edit_trigger(self, trigger):
+        self.delete_on_save = trigger
         self.add_action_by_default = False    
         self.set_view("new_trigger")
         self.add_action_by_default = True
@@ -122,7 +123,7 @@ class AutoRemoteGUI(object):
             inputs[1].set_value(action.action)
             action = action.next_action
 
-    def save_trigger(self, button):
+    def save_trigger(self, button):        
         print "Save!"
         trig_type = self.trigger_list.get_model().get_value(
             self.trigger_list.get_active_iter(), 1)
@@ -165,7 +166,12 @@ class AutoRemoteGUI(object):
         triggerdata["name"] = trig_name
         trigger = trig_type(triggerdata)
 
-
+        if hasattr(self, "delete_on_save"):
+            self.remove_trigger(self.delete_on_save)
+            del(self.delete_on_save)
+            import pdb
+            pdb.set_trace()
+            
         self.remote.add_trigger(trigger)
         self.add_trigger(trigger)
         
