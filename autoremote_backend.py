@@ -22,7 +22,7 @@ class AutoRemoteServer(object):
     self.world = WorldData()
     self.triggermaster = TriggerMaster(simplejson.load(open('triggers.json')), self.device_mgr)
     
-    GObject.timeout_add(5000, self.process_triggers)
+    GObject.timeout_add(1000, self.process_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
     import gtk
@@ -33,7 +33,6 @@ class AutoRemoteServer(object):
     self.triggermaster.run_triggers(self.world)
     return True
     
-
   def device_available(self, manager, device):
     print "Device available", device.get_friendly_name()
     

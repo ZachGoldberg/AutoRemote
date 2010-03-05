@@ -24,7 +24,14 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         self.window.set_title("Auto Remote")
         self.window.show()
 
-
+    def update_backend_status(self, status):
+        if status:
+            status = "Running"
+        else:
+            status = "Not Running"
+        
+        self.window.set_title("Auto Remote (Backend: %s)" % status)
+        
     def delete_trigger(self, button):
         self.remove_trigger(self.triggers[button.index[0]])
 
@@ -50,6 +57,9 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         
         menu.show_all()
         menu.popup(None, None, None, 1, 0)
+
+    def reset_backend(self, button):
+        self.remote.reset_backend()
 
     def build_trigger_action_view(self):
         """
@@ -77,10 +87,14 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
 
         new_button = hildon.Button(0, 0, "New Trigger")
         new_button.connect("clicked", lambda x, : self.set_view("new_trigger"))
+
+        reset_backend = hildon.Button(0, 0, "Reset AutoRemote Backend")
+        reset_backend.connect("clicked", self.reset_backend)
         
         menu = hildon.AppMenu()
         menu.append(summary_button)
         menu.append(new_button)
+        menu.append(reset_backend)
         menu.show_all()
 
         self.window.set_app_menu(menu)
@@ -153,6 +167,7 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         self.vbox.show()
 
         form_holder = hildon.StackableWindow()
+        form_holder.set_title("AutoRemote Trigger Editor")
         form_holder.add(self.vbox)
         form_holder.show()
         
@@ -172,7 +187,6 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         stack = hildon.WindowStack.get_default()
 
         if view == "summary":
-            print self.window, self.window.get_title()            
             self.window.show_all()
             if stack.size() > 1:
                 stack.pop(1)

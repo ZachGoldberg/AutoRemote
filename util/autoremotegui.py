@@ -17,6 +17,9 @@ class AutoRemoteGUI(object):
         print "destroy signal occurred"
         gtk.main_quit()
 
+    def update_backend_status(self, status):
+        pass
+
     def add_renderer(self, device):
         for rlist in self.render_lists:
             rlist.get_model().append([device.get_friendly_name(), device])
@@ -42,9 +45,7 @@ class AutoRemoteGUI(object):
                 iterv = model.iter_next(iterv)            
 
     def remove_trigger(self, trigger):
-        print len(self.triggers)
         self.triggers.remove(trigger)
-        print len(self.triggers)
         
         model = self.item_list.get_model()
         count = model.iter_n_children(None)
@@ -78,7 +79,6 @@ class AutoRemoteGUI(object):
         return
 
     def trigger_type_changed(self, box):
-        print box
         trigger_class = box.get_model().get_value(box.get_active_iter(), 1)
         inputs = trigger_class.get_editable_fields()
         self.current_editables = inputs
@@ -117,7 +117,6 @@ class AutoRemoteGUI(object):
         # Setup all the actions
         action = trigger.action
         while action:
-            print action
             inputs = self.add_action(None)
             inputs[0].set_value(action.device_udn, 1, lambda x: x.get_udn())
             inputs[1].set_value(action.action)
@@ -131,14 +130,6 @@ class AutoRemoteGUI(object):
             return
 
         trig_name = self.trigger_name.get_text()
-        print trig_type, trig_name
-        
-        for v in self.current_editables:
-            print v.get_value()
-
-        for a in self.actions:
-            for i in a:
-                print i.get_value()
                 
         # First build a list of actions chained together,
         # then build a trigger containing that action
@@ -169,8 +160,6 @@ class AutoRemoteGUI(object):
         if hasattr(self, "delete_on_save"):
             self.remove_trigger(self.delete_on_save)
             del(self.delete_on_save)
-            import pdb
-            pdb.set_trace()
             
         self.remote.add_trigger(trigger)
         self.add_trigger(trigger)
@@ -178,7 +167,6 @@ class AutoRemoteGUI(object):
         self.set_view("summary")
 
     def add_action(self, button):
-        print "Add Action"
         renderers = [(n.get_friendly_name(), n) for n in self.upnp.renderers]
         renderer_actions = ["Stop", "Pause", "Play", "Next", "Prev"]
         action_inputs = [
@@ -192,7 +180,6 @@ class AutoRemoteGUI(object):
         cur_row = self.action_form.get_property("n_rows")
         for input in action_inputs:
             (label, input) = input.draw()
-            print label
             self.action_form.attach(label, 0, 1, cur_row, cur_row + 1)
             self.action_form.attach(input, 1, 2, cur_row, cur_row + 1)
             cur_row += 1
@@ -323,9 +310,6 @@ class AutoRemoteGUI(object):
         # Clear the window first
         for c in self.window.get_children():
             self.window.remove(c)
-
-        if hasattr(self, "item_list"):
-            print self.item_list.get_model() , "MODEL2"
 
         print "Set view %s" % view
 

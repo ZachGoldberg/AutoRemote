@@ -20,6 +20,9 @@ class UPnPAction(object):
         self.action = action
         self.data = data
 
+        if not self.data:
+            self.data = {}
+
         self.next_action = next_action
 
     

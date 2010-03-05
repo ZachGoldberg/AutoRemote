@@ -3,15 +3,17 @@ import urllib2, tempfile, os, atexit
 
 class UPnPDeviceManager(GObject.GObject):
 
-  def list_cur_devices(self):
+  def list_cur_devices(self, show_actions=False):
     for d in self.devices:
       print "Device: %s (%s)" % (d.get_model_name(), d.get_udn())
       for s in self.device_services[d.get_udn()]:
         print "\tService: %s" % s.get_service_type()
         if not s.get_udn() in self.introspections:
           continue
-        for a in self.introspections[s.get_udn()].list_actions():
-          print "\t\tAction: %s" % a.name
+        
+        if show_actions:
+          for a in self.introspections[s.get_udn()].list_actions():
+            print "\t\tAction: %s" % a.name
           
     print "Current Sources:"
     for i in self.sources:

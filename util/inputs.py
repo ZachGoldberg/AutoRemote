@@ -110,4 +110,4 @@ class Entry(Input):
         return self.entry.get_text()
 
     def set_value(self, text):
-        self.entry.set_text(text)
+        self.entry.set_text(str(text))

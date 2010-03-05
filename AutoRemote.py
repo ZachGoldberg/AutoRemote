@@ -1,6 +1,6 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
 import pdb
-import pygtk, gtk, simplejson, sys
+import pygtk, gtk, simplejson, sys, subprocess
 
 from datetime import datetime
 from util.action import UPnPAction
@@ -39,9 +39,24 @@ class AutoRemote(object):
     
     self.load_data("triggers.json")
 
+    GObject.timeout_add(1000, self.update_backend_status)
+
     self.ui.main()
 
+  def update_backend_status(self):
+    backend_name = "autoremote_backend.py"
+    ps_data = subprocess.Popen(["ps", "-eo","pid,args"],
+                               stdout=subprocess.PIPE).communicate()[0].split("\n")
 
+    backend_status = False
+    for i in ps_data:
+      if backend_name in i:
+        backend_status = True
+        break
+
+    self.ui.update_backend_status(backend_status)
+       
+    return True
 
   def add_trigger(self, trigger):
     data_file = "triggers.json"

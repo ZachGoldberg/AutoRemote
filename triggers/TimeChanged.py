@@ -21,9 +21,11 @@ class TimeChanged (Trigger):
       self.checkpoint_time = datetime.now()
       if not hasattr(self, "time_delta"):
          self.time_delta = -1
+      else:
+         self.time_delta = int(self.time_delta)
          
       if not hasattr(self, "cycle_trigger"):
-         self.cycle_trigger = False
+         self.cycle_trigger = True
    
    def is_triggered(self, worlddata):
       if not self.active:
@@ -31,6 +33,7 @@ class TimeChanged (Trigger):
       
       if self.time_delta > 0 and ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
          seconds=self.time_delta)):
+         print self.cycle_trigger
          if self.cycle_trigger:
             self.checkpoint_time = datetime.now()
          return True

@@ -23,9 +23,8 @@ class TriggerMaster(object):
       return loaded_triggers
 
    def run_triggers(self, world):
-      
-      for trigger in self.triggers:            
-         if trigger.is_triggered(world):            
+      for trigger in self.triggers:
+         if trigger.is_triggered(world):
             trigger.execute_action()
             if not trigger.reusable:
                trigger.active = False
