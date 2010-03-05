@@ -45,15 +45,32 @@ class AutoRemote(object):
 
   def add_trigger(self, trigger):
     data_file = "triggers.json"
-    triggerdata = simplejson.load(open(data_file))
+    try:
+      triggerdata = simplejson.load(open(data_file))
+    except:
+      triggerdata = []
+      
     triggerdata.append(trigger.dumps())
-    f = open("triggers.json", "w")
+    f = open(data_file, "w")
     f.write(simplejson.dumps(triggerdata))
     f.close()
-           
+
+  def write_triggers(self, triggers):
+    data_file = "triggers.json"
+    triggerdata = []
+    for trigger in triggers:
+      triggerdata.append(trigger.dumps())
+
+    f = open(data_file, "w")
+    f.write(simplejson.dumps(triggerdata))
+    f.close()           
 
   def load_data(self, data_file):
-    triggerdata = simplejson.load(open(data_file))
+    try:
+      triggerdata = simplejson.load(open(data_file))
+    except:
+      triggerdata = []
+      
     self.triggermaster = TriggerMaster(triggerdata, self.device_mgr)
 
     for trigger in self.triggermaster.triggers:
@@ -167,6 +184,11 @@ class AutoRemote(object):
   
 
 if __name__ == "__main__":
-  prog = AutoRemote(simplejson.load(open("./triggers.json")))
+  try:
+    data = simplejson.load(open("./triggers.json"))
+  except:
+    data = []
+    
+  prog = AutoRemote(data)
   prog.main()
 

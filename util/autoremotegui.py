@@ -41,10 +41,27 @@ class AutoRemoteGUI(object):
                 
                 iterv = model.iter_next(iterv)
                 
-            
+
+    def remove_trigger(self, trigger):
+        print len(self.triggers)
+        self.triggers.remove(trigger)
+        print len(self.triggers)
+        
+        model = self.item_list.get_model()
+        count = model.iter_n_children(None)
+        iterv = model.get_iter_first()
+        for i in range(0, count):
+            if model.get_value(iterv, 1) == trigger:
+                model.remove(iterv)
+                break
+            iterv = model.iter_next(iterv)
+
+        self.remote.write_triggers(self.triggers)
+        
     def add_trigger(self, trigger):
-        self.item_list.get_model().append([trigger.get_name()])
- 
+        self.item_list.get_model().append([trigger.get_name(), trigger])
+        self.triggers.append(trigger)
+
     def make_pb(self, col, cell, model, iter):
         stock = model.get_value(iter, 1)
 	if not stock:
@@ -114,8 +131,8 @@ class AutoRemoteGUI(object):
 
         triggerdata["upnpaction"] = action
         triggerdata["trigger_class"] = trig_type.__name__
+        triggerdata["name"] = trig_name
         trigger = trig_type(triggerdata)
-        trigger.name = trig_name
 
 
         self.remote.add_trigger(trigger)
@@ -246,7 +263,7 @@ class AutoRemoteGUI(object):
         col.pack_start(col.cell)
         col.set_attributes(col.cell, text=0)
 
-        tree_model = gtk.ListStore(str)
+        tree_model = gtk.ListStore(str, object)
         trigger_action_view = gtk.TreeView(tree_model)
         trigger_action_view.append_column(col)
         trigger_action_view.show()
@@ -309,3 +326,4 @@ class AutoRemoteGUI(object):
         self.items = []
         self.stack = []
         self.render_lists = []
+        self.triggers = []

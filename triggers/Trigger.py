@@ -2,6 +2,9 @@ from util.action import UPnPAction
 import simplejson, triggers
 
 class Trigger(object):
+
+   unserializable_fields = ["action", "displayName"]
+   
    def __init__(self, triggerdata):
       for key, value in triggerdata.items():
           setattr(self, key, value)
@@ -21,7 +24,10 @@ class Trigger(object):
       if not hasattr(self, "name") or not self.name:
          return "Basic Trigger"
       else:
-         return self.name
+         if hasattr(self, "displayName"):
+            return self.displayName
+         else:
+            return self.name
 
    def is_triggered(self, world_data):
       return False
@@ -37,8 +43,9 @@ class Trigger(object):
 
    def dumps(self):
       data = self.__dict__.copy()
-      if "action" in data:
-         del data["action"]
+      for field in Trigger.unserializable_fields:
+         if field in data:
+            del data[field]
 
       return simplejson.dumps(data)
 

@@ -24,6 +24,35 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         self.window.set_title("Auto Remote")
         self.window.show()
 
+
+    def delete_trigger(self, button):
+        self.remove_trigger(self.triggers[button.index[0]])
+
+    def edit_trigger(self, button):
+        print self.triggers[button.index[0]]
+        import pdb
+        pdb.set_trace()
+
+    def show_menu(self, treeview, index, column):
+        menu = gtk.Menu()
+
+        edit = gtk.MenuItem("Edit")
+        delete = gtk.MenuItem("Delete")
+
+        for button in [edit, delete]:
+            button.treeview = treeview
+            button.column = column
+            button.index = index
+
+        edit.connect("activate", self.edit_trigger)
+        delete.connect("activate", self.delete_trigger)
+        
+        menu.add(edit)
+        menu.add(delete)
+        
+        menu.show_all()
+        menu.popup(None, None, None, 1, 0)
+
     def build_trigger_action_view(self):
         """
         Build a panel that will contain a list of all the
@@ -31,6 +60,9 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         with a TreeView underneath        
         """
         self.item_list = super(HildonAutoRemoteGUI, self).build_trigger_action_view()
+
+        self.item_list.connect("row-activated", self.show_menu)
+
         pannable = hildon.PannableArea()
         pannable.add(self.item_list)
         pannable.show()
@@ -55,7 +87,6 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
 
         self.window.set_app_menu(menu)
         
-
 
     def build_trigger_creation_window(self):
         self.actions = []

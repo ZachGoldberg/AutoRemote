@@ -8,7 +8,12 @@ class LocationChanged (Trigger):
    """
    def __init__(self, triggerdata):
       super(LocationChanged, self).__init__(triggerdata)
-      self.name = "Location Based Trigger"
+      if not hasattr(self, "name") or not self.name:
+         self.name = "Location Based Trigger"
+         self.displayName = self.name
+      else:
+         self.displayName = self.name + " (WiFi Locatio)"
+
 
    def is_triggered(self, worlddata):
        if worlddata.now().wifi_location.bssid != worlddata.now(-1).wifi_location.bssid:

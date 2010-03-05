@@ -11,10 +11,15 @@ class TimeChanged (Trigger):
    """
    def __init__(self, triggerdata):
       super(TimeChanged, self).__init__(triggerdata)
+
+      import pdb
+      pdb.set_trace()
+      
       if not hasattr(self, "name") or not self.name:
          self.name = "Time Based Trigger"
+         self.displayName = self.name
       else:
-         self.name += " (Time)"
+         self.displayName = self.name + " (Time)"
 
       self.checkpoint_time = datetime.now()
       if not hasattr(self, "time_delta"):
