@@ -1,6 +1,6 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
 import pdb
-import pygtk, gtk, simplejson, sys, subprocess
+import pygtk, gtk, simplejson, sys, subprocess, os
 
 from datetime import datetime
 from util.action import UPnPAction
@@ -42,6 +42,11 @@ class AutoRemote(object):
     GObject.timeout_add(1000, self.update_backend_status)
 
     self.ui.main()
+
+  def reset_backend(self):
+    backend_name = "autoremote_backend.py"
+    os.system("pkill -f %s" % backend_name)
+    os.system("python2.5 %s &" % backend_name) 
 
   def update_backend_status(self):
     backend_name = "autoremote_backend.py"
