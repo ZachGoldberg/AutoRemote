@@ -29,10 +29,8 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         self.remove_trigger(self.triggers[button.index[0]])
 
     def edit_trigger(self, button):
-        print self.triggers[button.index[0]]
-        import pdb
-        pdb.set_trace()
-
+        super(HildonAutoRemoteGUI, self).edit_trigger(self.triggers[button.index[0]])
+        
     def show_menu(self, treeview, index, column):
         menu = gtk.Menu()
 
@@ -158,7 +156,8 @@ class HildonAutoRemoteGUI(AutoRemoteGUI):
         form_holder.add(self.vbox)
         form_holder.show()
         
-        self.add_action(None)
+        if self.add_action_by_default:
+            self.add_action(None)
 
         return form_holder
 

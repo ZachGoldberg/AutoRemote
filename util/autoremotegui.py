@@ -39,8 +39,7 @@ class AutoRemoteGUI(object):
                     model.remove(iterv)                    
                     break
                 
-                iterv = model.iter_next(iterv)
-                
+                iterv = model.iter_next(iterv)            
 
     def remove_trigger(self, trigger):
         print len(self.triggers)
@@ -90,6 +89,38 @@ class AutoRemoteGUI(object):
             self.trigger_form.attach(input, 1, 2, cur_row, cur_row + 1)
             cur_row += 1
 
+
+    def edit_trigger(self, trigger):
+        self.add_action_by_default = False    
+        self.set_view("new_trigger")
+        self.add_action_by_default = True
+        
+        # Set the name
+        self.trigger_name.set_text(trigger.name)
+
+        # Set the type
+        model = self.trigger_list.get_model()
+        iterv = model.get_iter_first()
+        count = model.iter_n_children(None)
+        for i in range(0, count):
+            if model.get_value(iterv, 0) == trigger.__class__.__name__:
+                self.trigger_list.set_active(1 + 1)
+                break
+            
+            iterv = model.iter_next(iterv)            
+
+        # Set all the type specific values
+        for entry in self.current_editables:
+            entry.set_value(getattr(trigger, entry.userdata))
+
+        # Setup all the actions
+        action = trigger.action
+        while action:
+            print action
+            inputs = self.add_action(None)
+            inputs[0].set_value(action.device_udn, 1, lambda x: x.get_udn())
+            inputs[1].set_value(action.action)
+            action = action.next_action
 
     def save_trigger(self, button):
         print "Save!"
@@ -160,7 +191,8 @@ class AutoRemoteGUI(object):
             self.action_form.attach(input, 1, 2, cur_row, cur_row + 1)
             cur_row += 1
 
-        
+        return action_inputs
+    
     def build_trigger_creation_window(self, button=None):
         self.actions = []
 
@@ -223,7 +255,8 @@ class AutoRemoteGUI(object):
         form_holder.pack_end(buttons, False)
         form_holder.show()
 
-        self.add_action(None)
+ #       if self.add_action_by_default:
+#            self.add_action(None)
 
         return form_holder
 
@@ -327,3 +360,4 @@ class AutoRemoteGUI(object):
         self.stack = []
         self.render_lists = []
         self.triggers = []
+        self.add_action_by_default = True

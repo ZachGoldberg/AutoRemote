@@ -32,6 +32,9 @@ class Input(object):
     def get_value(self):
         raise "Unimplemented!"
     
+    def set_value(self):
+        raise "Unimplemented!"
+
 class Selection(Input):
     def __init__(self, label, options, userdata=None, string_only=True):
         super(Selection, self).__init__(label, userdata)
@@ -73,7 +76,26 @@ class Selection(Input):
                 self.list_input.get_model().get_value(iter, 0),
                 self.list_input.get_model().get_value(iter, 1)
                 ]
-        
+
+    def set_value(self, value, index=0, func=None):
+        model = self.list_input.get_model()
+        iterv = model.get_iter_first()
+        count = model.iter_n_children(None)
+
+        for i in range(0, count):
+            if not func:
+                if model.get_value(iterv, index) == value:
+                    self.list_input.set_active(i)
+                    return True
+            else:
+                if func(model.get_value(iterv, index)) == value:
+                    self.list_input.set_active(i)
+                    return True
+                
+            iterv = model.iter_next(iterv)            
+ 
+        return False
+    
 class Entry(Input):
     def __init__(self, label, userdata=None):
         super(Entry, self).__init__(label, userdata)
@@ -86,3 +108,6 @@ class Entry(Input):
 
     def get_value(self):
         return self.entry.get_text()
+
+    def set_value(self, text):
+        self.entry.set_text(text)

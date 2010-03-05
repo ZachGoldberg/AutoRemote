@@ -11,9 +11,6 @@ class TimeChanged (Trigger):
    """
    def __init__(self, triggerdata):
       super(TimeChanged, self).__init__(triggerdata)
-
-      import pdb
-      pdb.set_trace()
       
       if not hasattr(self, "name") or not self.name:
          self.name = "Time Based Trigger"
@@ -49,7 +46,7 @@ class TimeChanged (Trigger):
       return [inputs.Selection("Time Type", ["Specific Time",
                                              "Elapsed TIme"],
                                userdata="trigger_style"),
-              inputs.Entry("Specific Time: (%HH/%MM format) "
+              inputs.Entry("Specific Time: (%HH/%MM format) \n"
                            "or interval time (in seconds) ",
                            userdata="time_delta")
               ]
