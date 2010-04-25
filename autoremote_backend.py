@@ -1,4 +1,4 @@
-from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject, libsoup
+from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject
 import pdb
 import pygtk, gtk, simplejson
 

@@ -1,3 +1,4 @@
+from gi.repository import GObject
 import simplejson
 
 class UPnPAction(object):
@@ -20,9 +21,6 @@ class UPnPAction(object):
         self.action = action
         self.data = data
 
-        if not self.data:
-            self.data = {}
-
         self.next_action = next_action
 
     
@@ -39,12 +37,15 @@ class UPnPAction(object):
 
     def execute(self):
         if self.is_executable():
-            print "Send action"
             try:
-                self.service.send_action_hash(str(self.action), self.data, {})
+                self.service.send_action_list(str(self.action),
+                                               self.data.keys(),
+                                               [str(s) for s in self.data.values()],
+                                               [], [])
             except:
                 print "Error sending action"
-            print "Send action done"
+		import traceback
+		traceback.print_exc()
         else:
             print "Error -- Tried to execute an action that hasn't been activated"
 
