@@ -1,6 +1,6 @@
 from gi.repository import GLib, GUPnP, GUPnPAV, GSSDP, GObject
 import pdb
-import pygtk, gtk, simplejson
+import pygtk, gtk, simplejson, os
 
 from datetime import datetime
 from util.action import UPnPAction
@@ -20,8 +20,15 @@ class AutoRemoteServer(object):
     self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
     self.world = WorldData()
+
+    triggerfile = os.path.expanduser("~/.triggers.json")
+    if not os.path.exists(triggerfile):
+	f = open(triggerfile, 'w')
+	f.write('[]')
+	f.close()
+
     self.triggermaster = TriggerMaster(simplejson.load(
-      open('triggers.json')), self.device_mgr)
+      open(triggerfile)), self.device_mgr)
 
     GObject.timeout_add(1000, self.process_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)

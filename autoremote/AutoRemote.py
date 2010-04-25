@@ -37,19 +37,21 @@ class AutoRemote(object):
     self.ui = AutoRemoteGUI(self.device_mgr)
     self.ui.remote = self
     
-    self.load_data("triggers.json")
+    self.data_file = os.path.expanduser("~/.triggers.json")
+    self.load_data()
 
     GObject.timeout_add(1000, self.update_backend_status)
 
     self.ui.main()
 
   def reset_backend(self):
-    backend_name = "autoremote_backend.py"
+    backend_name = "autoremote_backend"
+    backend_bin = "/opt/autoremote/bin/autoremote_backend"
     os.system("pkill -f %s" % backend_name)
-    os.system("python2.5 %s &" % backend_name) 
+    os.system("%s &" % backend_bin) 
 
   def update_backend_status(self):
-    backend_name = "autoremote_backend.py"
+    backend_name = "autoremote_backend"
     ps_data = subprocess.Popen(["ps", "-eo","pid,args"],
                                stdout=subprocess.PIPE).communicate()[0].split("\n")
 
@@ -64,30 +66,28 @@ class AutoRemote(object):
     return True
 
   def add_trigger(self, trigger):
-    data_file = "triggers.json"
     try:
-      triggerdata = simplejson.load(open(data_file))
+      triggerdata = simplejson.load(open(self.data_file))
     except:
       triggerdata = []
       
     triggerdata.append(trigger.dumps())
-    f = open(data_file, "w")
+    f = open(self.data_file, "w")
     f.write(simplejson.dumps(triggerdata))
     f.close()
 
   def write_triggers(self, triggers):
-    data_file = "triggers.json"
     triggerdata = []
     for trigger in triggers:
       triggerdata.append(trigger.dumps())
 
-    f = open(data_file, "w")
+    f = open(self.data_file, "w")
     f.write(simplejson.dumps(triggerdata))
     f.close()           
 
-  def load_data(self, data_file):
+  def load_data(self):
     try:
-      triggerdata = simplejson.load(open(data_file))
+      triggerdata = simplejson.load(open(self.data_file))
     except:
       triggerdata = []
       

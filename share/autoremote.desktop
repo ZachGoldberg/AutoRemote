@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=AutoRemote
+Icon=zhaan
+Exec=/opt/autoremote/bin/autoremote
+Type=Application
+

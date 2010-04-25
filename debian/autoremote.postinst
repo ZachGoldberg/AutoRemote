@@ -7,6 +7,11 @@ PYTHONPATH=/opt/pygi/lib/python2.5/site-packages/gtk-2.0/
 AUTOREMOTE=/usr/share/pyshared/autoremote/AutoRemote.py
 AUTOREMOTEBIN=/opt/autoremote/bin/autoremote
 
+AUTOREMOTE2=/usr/share/pyshared/autoremote/autoremote_backend.py
+AUTOREMOTEBIN2=/opt/autoremote/bin/autoremote_backend
+
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH PYTHONPATH=$PYTHONPATH python $AUTOREMOTE" > $AUTOREMOTEBIN
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH PYTHONPATH=$PYTHONPATH python $AUTOREMOTE2" > $AUTOREMOTEBIN2
 chmod +x $AUTOREMOTEBIN
+chmod +x $AUTOREMOTEBIN2
 
