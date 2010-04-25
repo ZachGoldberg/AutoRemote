@@ -1,0 +1,15 @@
+Source: autoremote
+Section: user/multimedia
+Priority: optional
+Maintainer: Zach Goldberg <zach@zachgoldberg.com>
+Build-Depends: debhelper (>= 5), cdbs(>=0.4.48), python-central(>=0.6)
+XS-Python-Version: >= 2.5
+Standards-Version: 3.7.2
+
+Package: autoremote
+Architecture: all
+XB-Python-Version: ${python:Versions}
+Depends:  python (>= 2.5), python-hildon, python-gobject, python-simplejson, python-gtk2, python-gobject-pygi, pygi, libgupnp-gi-1.0-3, gir1.0-gssdp-1.0, gir1.0-gupnp-1.0, libgupnp-av-1.0-1, ${python:Depends}, gobject-introspection, gir1.0-soup-2.4, gir1.0-glib-2.0, gir-repository-dev, libgirepository1.0-0, gir1.0-freedesktop, gir1.0-gupnp-av-1.0
+Description: A Macro Based UPnP Control Point based on GUPnP
+ AutoRemote can execute UPnP actions based on various real
+ world variables
