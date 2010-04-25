@@ -38,15 +38,15 @@ class AutoRemoteGUI(object):
                     # If we're removing the active element then reset active to 0th element
                     if str(rlist.get_active()) == model.get_string_from_iter(iterv):
                         rlist.set_active(0)
-                        
+
                     model.remove(iterv)                    
                     break
-                
+
                 iterv = model.iter_next(iterv)            
 
     def remove_trigger(self, trigger):
         self.triggers.remove(trigger)
-        
+
         model = self.item_list.get_model()
         count = model.iter_n_children(None)
         iterv = model.get_iter_first()
@@ -57,7 +57,7 @@ class AutoRemoteGUI(object):
             iterv = model.iter_next(iterv)
 
         self.remote.write_triggers(self.triggers)
-        
+
     def add_trigger(self, trigger):
         self.item_list.get_model().append([trigger.get_name(), trigger])
         self.triggers.append(trigger)
@@ -95,7 +95,7 @@ class AutoRemoteGUI(object):
         self.add_action_by_default = False    
         self.set_view("new_trigger")
         self.add_action_by_default = True
-        
+
         # Set the name
         self.trigger_name.set_text(trigger.name)
 
@@ -107,7 +107,7 @@ class AutoRemoteGUI(object):
             if model.get_value(iterv, 0) == trigger.__class__.__name__:
                 self.trigger_list.set_active(1 + 1)
                 break
-            
+
             iterv = model.iter_next(iterv)            
 
         # Set all the type specific values
@@ -123,14 +123,14 @@ class AutoRemoteGUI(object):
             action = action.next_action
 
     def save_trigger(self, button):        
-        print "Save!"
+        print "Save!"    
         trig_type = self.trigger_list.get_model().get_value(
             self.trigger_list.get_active_iter(), 1)
         if not trig_type:
             return
 
         trig_name = self.trigger_name.get_text()
-                
+
         # First build a list of actions chained together,
         # then build a trigger containing that action
         action = None
@@ -155,6 +155,7 @@ class AutoRemoteGUI(object):
         triggerdata["upnpaction"] = action
         triggerdata["trigger_class"] = trig_type.__name__
         triggerdata["name"] = trig_name
+        triggerdata["reusable"] = True
         trigger = trig_type(triggerdata)
 
         if hasattr(self, "delete_on_save"):

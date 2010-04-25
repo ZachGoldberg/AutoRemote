@@ -24,8 +24,6 @@ class TimeChanged (Trigger):
       else:
          self.time_delta = int(self.time_delta)
          
-      if not hasattr(self, "cycle_trigger"):
-         self.cycle_trigger = True
    
    def is_triggered(self, worlddata):
       if not self.active:
@@ -33,11 +31,10 @@ class TimeChanged (Trigger):
       
       if self.time_delta > 0 and ((worlddata.now().get_time() - self.checkpoint_time) > timedelta(
          seconds=self.time_delta)):
-         print self.cycle_trigger
-         if self.cycle_trigger:
+         if self.reusable:
             self.checkpoint_time = datetime.now()
          return True
-       
+
       return False
 
    def dumps(self):
@@ -46,13 +43,12 @@ class TimeChanged (Trigger):
    
    @classmethod
    def get_editable_fields(clz):
-      return [inputs.Selection("Time Type", ["Specific Time",
-                                             "Elapsed TIme"],
+      return [inputs.Selection("Time Type", ["Elapsed TIme",
+                                             "Specific Time"],
                                userdata="trigger_style"),
               inputs.Entry("Specific Time: (%HH/%MM format) \n"
                            "or interval time (in seconds) ",
                            userdata="time_delta")
               ]
-   
 
 triggers.register_trigger(TimeChanged)

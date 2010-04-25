@@ -3,7 +3,7 @@ import simplejson
 
 class UPnPAction(object):
     def __init__(self, device, service, action, data, next_action=False):
-        
+
         if isinstance(device, basestring):
             self.device_udn = device
             self.device = None
@@ -23,10 +23,10 @@ class UPnPAction(object):
 
         self.next_action = next_action
 
-    
+
     def register_device_manager(self, device_mgr):
         self.device_mgr = device_mgr
-        
+
     def activate(self, device, service):
         self.device = device
         self.service = service
@@ -38,6 +38,8 @@ class UPnPAction(object):
     def execute(self):
         if self.is_executable():
             try:
+                if not self.data:
+                    self.data = {}
                 self.service.send_action_list(str(self.action),
                                                self.data.keys(),
                                                [str(s) for s in self.data.values()],

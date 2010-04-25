@@ -20,8 +20,9 @@ class AutoRemoteServer(object):
     self.device_mgr.connect("device-unavailable", self.device_unavailable)
 
     self.world = WorldData()
-    self.triggermaster = TriggerMaster(simplejson.load(open('triggers.json')), self.device_mgr)
-    
+    self.triggermaster = TriggerMaster(simplejson.load(
+      open('triggers.json')), self.device_mgr)
+
     GObject.timeout_add(1000, self.process_triggers)
     GObject.timeout_add(5000, self.device_mgr.list_cur_devices)
 
@@ -29,6 +30,7 @@ class AutoRemoteServer(object):
     gtk.main()
 
   def process_triggers(self):
+    print "Processing Triggers / Advancing Time"
     self.world.advance_time()
     self.triggermaster.run_triggers(self.world)
     return True
